@@ -2,6 +2,7 @@ module Roots.List exposing
     ( chunk
     , indexed
     , modify
+    , modifyFirst
     , splitAt
     )
 
@@ -54,6 +55,29 @@ modify n f xs0 =
                             modify (n - 1) f xs
                     in
                     ( x :: ys, b )
+
+
+modifyFirst : (a -> Bool) -> (a -> ( Maybe a, b )) -> List a -> ( List a, Maybe b )
+modifyFirst p f xs0 =
+    case xs0 of
+        [] ->
+            ( [], Nothing )
+
+        x :: xs ->
+            if p x then
+                case f x of
+                    ( Nothing, b ) ->
+                        ( xs, Just b )
+
+                    ( Just y, b ) ->
+                        ( y :: xs, Just b )
+
+            else
+                let
+                    ( ys, b ) =
+                        modifyFirst p f xs
+                in
+                ( x :: ys, b )
 
 
 splitAt : Int -> List a -> ( List a, List a )
