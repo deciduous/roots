@@ -1,7 +1,11 @@
 module Roots.List exposing
     ( chunk
+    , indexed
+    , modify
     , splitAt
     )
+
+import List
 
 
 chunk : Int -> List a -> List (List a)
@@ -21,6 +25,35 @@ chunk_ n xs =
 
         ( ys, zs ) ->
             ys :: chunk_ n zs
+
+
+indexed : List a -> List ( Int, a )
+indexed =
+    List.indexedMap (\n x -> ( n, x ))
+
+
+modify : Int -> (a -> ( Maybe a, b )) -> List a -> ( List a, Maybe b )
+modify n f xs0 =
+    case xs0 of
+        [] ->
+            ( [], Nothing )
+
+        x :: xs ->
+            case n of
+                0 ->
+                    case f x of
+                        ( Nothing, b ) ->
+                            ( xs, Just b )
+
+                        ( Just y, b ) ->
+                            ( y :: xs, Just b )
+
+                _ ->
+                    let
+                        ( ys, b ) =
+                            modify (n - 1) f xs
+                    in
+                    ( x :: ys, b )
 
 
 splitAt : Int -> List a -> ( List a, List a )
