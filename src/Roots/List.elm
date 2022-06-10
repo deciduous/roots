@@ -1,5 +1,6 @@
 module Roots.List exposing
     ( chunk
+    , findFirst
     , indexed
     , modify
     , modifyFirst
@@ -27,6 +28,14 @@ chunk_ n xs =
         ( ys, zs ) ->
             ys :: chunk_ n zs
 
+findFirst : (a -> Maybe b) -> List a -> Maybe b
+findFirst f xs0 =
+  case xs0 of
+    [] -> Nothing
+    x :: xs ->
+      case f x of
+        Nothing -> findFirst f xs
+        Just y -> Just y
 
 indexed : List a -> List ( Int, a )
 indexed =
