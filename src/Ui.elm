@@ -1,13 +1,13 @@
 module Ui exposing
     ( Attr
     , El
+    , background
     , bold
     , border
     , bottom
     , centerX
     , centerY
     , col
-    , color
     , el
     , fontColor
     , height
@@ -214,8 +214,8 @@ border c px =
 -- Color
 
 
-color : Color -> Attr a
-color c =
+background : Color -> Attr a
+background c =
     [ Background.color c ]
 
 
