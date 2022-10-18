@@ -1,18 +1,30 @@
 module Ui exposing
     ( Attr
+    , Color
     , El
+    , Font
+    , attrIf
+    , attrWhen
     , background
     , bold
     , border
+    , border4
     , bottom
     , centerX
     , centerY
     , col
+    , cursorText
     , el
+    , elIf
+    , elWhen
+    , fontCenter
     , fontColor
+    , fontFamily
     , height
+    , inFront
     , italic
     , left
+    , link
     , maxHeight
     , maxWidth
     , none
@@ -23,12 +35,15 @@ module Ui exposing
     , pointer
     , rgb
     , right
+    , roundedCorners
     , row
     , size
     , spacing
+    , strikethrough
     , text
     , toHtml
     , top
+    , underline
     , unselectable
     , width
     )
@@ -40,23 +55,97 @@ import Element.Events as Events
 import Element.Font as Font
 import Html exposing (Html)
 import Html.Attributes
+import Html.Events
+import Json.Decode
 
 
 type alias Attr a =
     List (Element.Attribute a)
 
 
+type alias Color =
+    Element.Color
+
+
 type alias El a =
     Element.Element a
 
 
-type alias Color =
-    Element.Color
+type alias Font =
+    Font.Font
 
 
 toHtml : El a -> Html a
 toHtml =
     Element.layout []
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Conditional elements/attributes
+
+
+attrIf : Bool -> List (Attr a) -> Attr a
+attrIf b x =
+    if b then
+        List.concat x
+
+    else
+        []
+
+
+attrWhen : Maybe a -> (a -> List (Attr b)) -> Attr b
+attrWhen mx f =
+    case mx of
+        Nothing ->
+            []
+
+        Just x ->
+            List.concat (f x)
+
+
+elIf : Bool -> El a -> El a
+elIf b x =
+    if b then
+        x
+
+    else
+        Element.none
+
+
+elWhen : Maybe a -> (a -> El b) -> El b
+elWhen mx f =
+    case mx of
+        Nothing ->
+            Element.none
+
+        Just x ->
+            f x
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Basic elements
+
+
+none : El a
+none =
+    Element.none
+
+
+text : String -> El a
+text =
+    Element.text
+
+
+paragraph : List (Attr a) -> List (El a) -> El a
+paragraph attrs =
+    Element.paragraph (List.concat attrs)
+
+
+link : List (Attr a) -> { label : El a, url : String } -> El a
+link attrs =
+    Element.link (List.concat attrs)
 
 
 
@@ -81,27 +170,12 @@ row attrs =
 
 
 ------------------------------------------------------------------------------------------------------------------------
--- Basic elements
-
-
-none : El a
-none =
-    Element.none
-
-
-text : String -> El a
-text =
-    Element.text
-
-
-paragraph : List (Attr a) -> List (El a) -> El a
-paragraph attrs =
-    Element.paragraph (List.concat attrs)
-
-
-
-------------------------------------------------------------------------------------------------------------------------
 -- Positioning
+
+
+inFront : El a -> Attr a
+inFront x =
+    [ Element.inFront x ]
 
 
 bottom : Attr a
@@ -179,6 +253,16 @@ spacing px =
 -- Font
 
 
+fontFamily : List Font -> Attr a
+fontFamily xs =
+    [ Font.family xs ]
+
+
+size : Int -> Attr a
+size px =
+    [ Font.size px ]
+
+
 fontColor : Color -> Attr a
 fontColor c =
     [ Font.color c ]
@@ -194,9 +278,19 @@ italic =
     [ Font.italic ]
 
 
-size : Int -> Attr a
-size px =
-    [ Font.size px ]
+underline : Attr a
+underline =
+    [ Font.underline ]
+
+
+strikethrough : Attr a
+strikethrough =
+    [ Font.strike ]
+
+
+fontCenter : Attr a
+fontCenter =
+    [ Font.center ]
 
 
 
@@ -204,9 +298,19 @@ size px =
 -- Border
 
 
-border : Color -> Int -> Attr a
-border c px =
+border : Color -> Int -> Int -> Int -> Int -> Attr a
+border co a b c d =
+    [ Border.color co, Border.solid, Border.widthEach { top = a, right = b, bottom = c, left = d } ]
+
+
+border4 : Color -> Int -> Attr a
+border4 c px =
     [ Border.color c, Border.solid, Border.width px ]
+
+
+roundedCorners : Int -> Attr a
+roundedCorners px =
+    [ Border.rounded px ]
 
 
 
@@ -229,6 +333,11 @@ rgb =
 -- Misc
 
 
+cursorText : Attr a
+cursorText =
+    [ Element.htmlAttribute (Html.Attributes.style "cursor" "text") ]
+
+
 pointer : Attr a
 pointer =
     [ Element.pointer ]
@@ -247,3 +356,21 @@ unselectable =
 onClick : a -> Attr a
 onClick x =
     [ Events.onClick x ]
+
+
+onEnter : a -> Attr a
+onEnter x =
+    [ Element.htmlAttribute
+        (Html.Events.on "keyup"
+            (Json.Decode.field "key" Json.Decode.string
+                |> Json.Decode.andThen
+                    (\key ->
+                        if key == "Enter" then
+                            Json.Decode.succeed x
+
+                        else
+                            Json.Decode.fail ""
+                    )
+            )
+        )
+    ]
