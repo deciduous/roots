@@ -111,9 +111,9 @@ type alias Svg a =
     Svg.Svg a
 
 
-toHtml : List Option -> El a -> Html a
-toHtml options =
-    Element.layoutWith { options = options } []
+toHtml : List Option -> List (Attr a) -> El a -> Html a
+toHtml options attrs =
+    Element.layoutWith { options = options } (List.concat attrs)
 
 
 focusStyle : Element.FocusStyle -> Option
