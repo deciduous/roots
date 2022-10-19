@@ -9,7 +9,7 @@ module Roots.Update exposing
     , step
     , stepIf
     , stepWhen
-    , toUpdateFunction
+    , toUpdate
     )
 
 
@@ -100,8 +100,6 @@ mapModel f { commands, model } =
     }
 
 
-toUpdateFunction : (event -> Step model event) -> event -> model -> ( model, Cmd event )
-toUpdateFunction f event model0 =
-    case f event model0 of
-        { commands, model } ->
-            ( model, Cmd.batch commands )
+toUpdate : Update model event -> ( model, Cmd event )
+toUpdate { commands, model } =
+    ( model, Cmd.batch commands )

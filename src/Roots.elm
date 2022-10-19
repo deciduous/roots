@@ -1,6 +1,7 @@
 module Roots exposing
     ( Array
     , Dict
+    , Set
     , ifte
     , isEven
     , isOdd
@@ -8,6 +9,7 @@ module Roots exposing
 
 import Array
 import Dict
+import Set
 
 
 type alias Array a =
@@ -16,6 +18,10 @@ type alias Array a =
 
 type alias Dict k v =
     Dict.Dict k v
+
+
+type alias Set a =
+    Set.Set a
 
 
 ifte : Bool -> a -> a -> a

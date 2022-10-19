@@ -1,16 +1,31 @@
 module Roots.List exposing
     ( Modification(..)
+    , asSingleton
     , chunk
+    , dropWhile
     , findFirst
     , indexed
+    , isSingleton
+    , mapMaybe
     , modify
     , modifyFirst
     , modifyFirst_
     , splitAt
+    , uncons
     , unsnoc
     )
 
 import List
+
+
+asSingleton : List a -> Maybe a
+asSingleton xs =
+    case xs of
+        [ x ] ->
+            Just x
+
+        _ ->
+            Nothing
 
 
 chunk : Int -> List a -> List (List a)
@@ -32,6 +47,20 @@ chunk_ n xs =
             ys :: chunk_ n zs
 
 
+dropWhile : (a -> Bool) -> List a -> List a
+dropWhile f xs =
+    case xs of
+        [] ->
+            []
+
+        y :: ys ->
+            if f y then
+                dropWhile f ys
+
+            else
+                xs
+
+
 findFirst : (a -> Maybe b) -> List a -> Maybe b
 findFirst f xs0 =
     case xs0 of
@@ -50,6 +79,35 @@ findFirst f xs0 =
 indexed : List a -> List ( Int, a )
 indexed =
     List.indexedMap (\n x -> ( n, x ))
+
+
+isSingleton : List a -> Bool
+isSingleton xs =
+    case xs of
+        [ _ ] ->
+            True
+
+        _ ->
+            False
+
+
+mapMaybe : (a -> Maybe b) -> List a -> List b
+mapMaybe f xs =
+    case xs of
+        [] ->
+            []
+
+        y :: ys ->
+            let
+                zs =
+                    mapMaybe f ys
+            in
+            case f y of
+                Nothing ->
+                    zs
+
+                Just z ->
+                    z :: zs
 
 
 modify : Int -> (a -> ( Maybe a, b )) -> List a -> ( List a, Maybe b )
@@ -148,6 +206,16 @@ splitAt_ n xs0 =
                         splitAt_ (n - 1) xs
                 in
                 ( x :: ys, zs )
+
+
+uncons : List a -> Maybe ( a, List a )
+uncons xs =
+    case xs of
+        [] ->
+            Nothing
+
+        y :: ys ->
+            Just ( y, ys )
 
 
 unsnoc : List a -> Maybe ( List a, a )

@@ -3,9 +3,16 @@ module Ui exposing
     , Color
     , El
     , Font
+    , Option
+    , Svg
+    , above
+    , attr
     , attrIf
     , attrWhen
+    , autocomplete
     , background
+    , behind
+    , below
     , bold
     , border
     , border4
@@ -17,18 +24,34 @@ module Ui exposing
     , el
     , elIf
     , elWhen
+    , focusStyle
     , fontCenter
     , fontColor
     , fontFamily
     , height
-    , inFront
+    , id
+    , inFrontOf
     , italic
+    , lazy
+    , lazy2
+    , lazy3
+    , lazy4
+    , lazy5
     , left
     , link
     , maxHeight
     , maxWidth
     , none
     , onClick
+    , onDoubleClick
+    , onEnter
+    , onFocus
+    , onLoseFocus
+    , onMouseDown
+    , onMouseEnter
+    , onMouseLeave
+    , onMouseMove
+    , onMouseUp
     , padding
     , padding4
     , paragraph
@@ -37,12 +60,15 @@ module Ui exposing
     , right
     , roundedCorners
     , row
+    , sansSerif
     , size
     , spacing
     , strikethrough
+    , svg
     , text
     , toHtml
     , top
+    , typeface
     , underline
     , unselectable
     , width
@@ -53,10 +79,12 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Element.Lazy as Lazy
 import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Json.Decode
+import Svg
 
 
 type alias Attr a =
@@ -75,52 +103,22 @@ type alias Font =
     Font.Font
 
 
-toHtml : El a -> Html a
-toHtml =
-    Element.layout []
+type alias Option =
+    Element.Option
 
 
-
-------------------------------------------------------------------------------------------------------------------------
--- Conditional elements/attributes
-
-
-attrIf : Bool -> List (Attr a) -> Attr a
-attrIf b x =
-    if b then
-        List.concat x
-
-    else
-        []
+type alias Svg a =
+    Svg.Svg a
 
 
-attrWhen : Maybe a -> (a -> List (Attr b)) -> Attr b
-attrWhen mx f =
-    case mx of
-        Nothing ->
-            []
-
-        Just x ->
-            List.concat (f x)
+toHtml : List Option -> El a -> Html a
+toHtml options =
+    Element.layoutWith { options = options } []
 
 
-elIf : Bool -> El a -> El a
-elIf b x =
-    if b then
-        x
-
-    else
-        Element.none
-
-
-elWhen : Maybe a -> (a -> El b) -> El b
-elWhen mx f =
-    case mx of
-        Nothing ->
-            Element.none
-
-        Just x ->
-            f x
+focusStyle : Element.FocusStyle -> Option
+focusStyle =
+    Element.focusStyle
 
 
 
@@ -148,6 +146,21 @@ link attrs =
     Element.link (List.concat attrs)
 
 
+svg : List (Html.Attribute a) -> List (Svg a) -> El a
+svg xs ys =
+    Element.html (Svg.svg xs ys)
+
+
+attr : String -> String -> Attr a
+attr k v =
+    [ Element.htmlAttribute (Html.Attributes.attribute k v) ]
+
+
+attr_ : Html.Attribute a -> Attr a
+attr_ x =
+    [ Element.htmlAttribute x ]
+
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Container elements
@@ -173,9 +186,24 @@ row attrs =
 -- Positioning
 
 
-inFront : El a -> Attr a
-inFront x =
+above : El a -> Attr a
+above x =
+    [ Element.above x ]
+
+
+below : El a -> Attr a
+below x =
+    [ Element.below x ]
+
+
+inFrontOf : El a -> Attr a
+inFrontOf x =
     [ Element.inFront x ]
+
+
+behind : El a -> Attr a
+behind x =
+    [ Element.behindContent x ]
 
 
 bottom : Attr a
@@ -258,6 +286,16 @@ fontFamily xs =
     [ Font.family xs ]
 
 
+sansSerif : Font
+sansSerif =
+    Font.sansSerif
+
+
+typeface : String -> Font
+typeface =
+    Font.typeface
+
+
 size : Int -> Attr a
 size px =
     [ Font.size px ]
@@ -333,9 +371,19 @@ rgb =
 -- Misc
 
 
+autocomplete : Bool -> Attr a
+autocomplete b =
+    attr_ (Html.Attributes.autocomplete b)
+
+
 cursorText : Attr a
 cursorText =
     [ Element.htmlAttribute (Html.Attributes.style "cursor" "text") ]
+
+
+id : String -> Attr a
+id x =
+    attr_ (Html.Attributes.id x)
 
 
 pointer : Attr a
@@ -358,6 +406,46 @@ onClick x =
     [ Events.onClick x ]
 
 
+onDoubleClick : a -> Attr a
+onDoubleClick x =
+    [ Events.onDoubleClick x ]
+
+
+onMouseDown : a -> Attr a
+onMouseDown x =
+    [ Events.onMouseDown x ]
+
+
+onFocus : a -> Attr a
+onFocus x =
+    [ Events.onFocus x ]
+
+
+onLoseFocus : a -> Attr a
+onLoseFocus x =
+    [ Events.onLoseFocus x ]
+
+
+onMouseUp : a -> Attr a
+onMouseUp x =
+    [ Events.onMouseUp x ]
+
+
+onMouseEnter : a -> Attr a
+onMouseEnter x =
+    [ Events.onMouseEnter x ]
+
+
+onMouseLeave : a -> Attr a
+onMouseLeave x =
+    [ Events.onMouseLeave x ]
+
+
+onMouseMove : a -> Attr a
+onMouseMove x =
+    [ Events.onMouseMove x ]
+
+
 onEnter : a -> Attr a
 onEnter x =
     [ Element.htmlAttribute
@@ -374,3 +462,71 @@ onEnter x =
             )
         )
     ]
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Conditional elements/attributes
+
+
+attrIf : Bool -> List (Attr a) -> Attr a
+attrIf b x =
+    if b then
+        List.concat x
+
+    else
+        []
+
+
+attrWhen : Maybe a -> (a -> List (Attr b)) -> Attr b
+attrWhen mx f =
+    case mx of
+        Nothing ->
+            []
+
+        Just x ->
+            List.concat (f x)
+
+
+elIf : Bool -> El a -> El a
+elIf b x =
+    if b then
+        x
+
+    else
+        Element.none
+
+
+elWhen : Maybe a -> (a -> El b) -> El b
+elWhen mx f =
+    case mx of
+        Nothing ->
+            Element.none
+
+        Just x ->
+            f x
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Lazy elements
+
+
+lazy =
+    Lazy.lazy
+
+
+lazy2 =
+    Lazy.lazy2
+
+
+lazy3 =
+    Lazy.lazy3
+
+
+lazy4 =
+    Lazy.lazy4
+
+
+lazy5 =
+    Lazy.lazy5
