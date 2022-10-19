@@ -512,21 +512,26 @@ elWhen mx f =
 -- Lazy elements
 
 
+lazy : (a -> El b) -> a -> El b
 lazy =
     Lazy.lazy
 
 
+lazy2 : (a -> b -> El c) -> a -> b -> El c
 lazy2 =
     Lazy.lazy2
 
 
+lazy3 : (a -> b -> c -> El d) -> a -> b -> c -> El d
 lazy3 =
     Lazy.lazy3
 
 
+lazy4 : (a -> b -> c -> d -> El e) -> a -> b -> c -> d -> El e
 lazy4 =
     Lazy.lazy4
 
 
+lazy5 : (a -> b -> c -> d -> e -> El f) -> a -> b -> c -> d -> e -> El f
 lazy5 =
     Lazy.lazy5
