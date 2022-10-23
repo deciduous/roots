@@ -30,6 +30,7 @@ module Ui exposing
     , fontFamily
     , height
     , id
+    , image
     , inFrontOf
     , italic
     , lazy
@@ -41,6 +42,7 @@ module Ui exposing
     , link
     , maxHeight
     , maxWidth
+    , monospace
     , none
     , onClick
     , onDoubleClick
@@ -61,6 +63,7 @@ module Ui exposing
     , roundedCorners
     , row
     , sansSerif
+    , serif
     , size
     , spacing
     , strikethrough
@@ -286,9 +289,19 @@ fontFamily xs =
     [ Font.family xs ]
 
 
+serif : Font
+serif =
+    Font.serif
+
+
 sansSerif : Font
 sansSerif =
     Font.sansSerif
+
+
+monospace : Font
+monospace =
+    Font.monospace
 
 
 typeface : String -> Font
@@ -394,6 +407,16 @@ pointer =
 unselectable : Attr a
 unselectable =
     [ Element.htmlAttribute (Html.Attributes.style "user-select" "none") ]
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Images
+
+
+image : List (Attr a) -> { src : String, description : String } -> El a
+image attrs =
+    Element.image (List.concat attrs)
 
 
 
