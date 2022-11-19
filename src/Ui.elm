@@ -90,7 +90,7 @@ import Svg
 
 
 type alias Attr r a =
-    r -> List (Element.Attribute a)
+    List (r -> Element.Attribute a)
 
 
 type alias Color =
@@ -115,7 +115,17 @@ type alias Svg a =
 
 toHtml : List Option -> List (Attr r a) -> El r a -> r -> Html a
 toHtml options attrs elem r =
-    Element.layoutWith { options = options } (List.concat (List.map (\a -> a r) attrs)) (elem r)
+    Element.layoutWith { options = options } (toAttrs r attrs) (elem r)
+
+
+toAttrs : r -> List (Attr r a) -> List (Element.Attribute a)
+toAttrs r attrs =
+    List.map (\a -> a r) (List.concat attrs)
+
+
+toElems : r -> List (El r a) -> List (Element.Element a)
+toElems r es =
+    List.map (\e -> e r) es
 
 
 focusStyle : Element.FocusStyle -> Option
@@ -140,12 +150,12 @@ text s _ =
 
 paragraph : List (Attr r a) -> List (El r a) -> El r a
 paragraph attrs es r =
-    Element.paragraph (List.concat (List.map (\a -> a r) attrs)) (List.map (\e -> e r) es)
+    Element.paragraph (toAttrs r attrs) (toElems r es)
 
 
 link : List (Attr r a) -> { label : El r a, url : String } -> El r a
 link attrs { label, url } r =
-    Element.link (List.concat (List.map (\a -> a r) attrs)) { label = label r, url = url }
+    Element.link (toAttrs r attrs) { label = label r, url = url }
 
 
 svg : List (Html.Attribute a) -> List (Svg a) -> El r a
@@ -154,13 +164,13 @@ svg xs ys _ =
 
 
 attr : String -> String -> Attr r a
-attr k v _ =
-    [ Element.htmlAttribute (Html.Attributes.attribute k v) ]
+attr k v =
+    [ \_ -> Element.htmlAttribute (Html.Attributes.attribute k v) ]
 
 
 attr_ : Html.Attribute a -> Attr r a
-attr_ x _ =
-    [ Element.htmlAttribute x ]
+attr_ x =
+    [ \_ -> Element.htmlAttribute x ]
 
 
 
@@ -170,17 +180,17 @@ attr_ x _ =
 
 el : List (Attr r a) -> El r a -> El r a
 el attrs e r =
-    Element.el (List.concat (List.map (\a -> a r) attrs)) (e r)
+    Element.el (toAttrs r attrs) (e r)
 
 
 col : List (Attr r a) -> List (El r a) -> El r a
 col attrs es r =
-    Element.column (List.concat (List.map (\a -> a r) attrs)) (List.map (\e -> e r) es)
+    Element.column (toAttrs r attrs) (toElems r es)
 
 
 row : List (Attr r a) -> List (El r a) -> El r a
 row attrs es r =
-    Element.row (List.concat (List.map (\a -> a r) attrs)) (List.map (\e -> e r) es)
+    Element.row (toAttrs r attrs) (toElems r es)
 
 
 
@@ -189,53 +199,53 @@ row attrs es r =
 
 
 above : El r a -> Attr r a
-above e r =
-    [ Element.above (e r) ]
+above e =
+    [ \r -> Element.above (e r) ]
 
 
 below : El r a -> Attr r a
-below e r =
-    [ Element.below (e r) ]
+below e =
+    [ \r -> Element.below (e r) ]
 
 
 inFrontOf : El r a -> Attr r a
-inFrontOf e r =
-    [ Element.inFront (e r) ]
+inFrontOf e =
+    [ \r -> Element.inFront (e r) ]
 
 
 behind : El r a -> Attr r a
-behind e r =
-    [ Element.behindContent (e r) ]
+behind e =
+    [ \r -> Element.behindContent (e r) ]
 
 
 bottom : Attr r a
-bottom _ =
-    [ Element.alignBottom ]
+bottom =
+    [ \_ -> Element.alignBottom ]
 
 
 left : Attr r a
-left _ =
-    [ Element.alignLeft ]
+left =
+    [ \_ -> Element.alignLeft ]
 
 
 right : Attr r a
-right _ =
-    [ Element.alignRight ]
+right =
+    [ \_ -> Element.alignRight ]
 
 
 top : Attr r a
-top _ =
-    [ Element.alignTop ]
+top =
+    [ \_ -> Element.alignTop ]
 
 
 centerX : Attr r a
-centerX _ =
-    [ Element.centerX ]
+centerX =
+    [ \_ -> Element.centerX ]
 
 
 centerY : Attr r a
-centerY _ =
-    [ Element.centerY ]
+centerY =
+    [ \_ -> Element.centerY ]
 
 
 
@@ -244,38 +254,38 @@ centerY _ =
 
 
 height : Int -> Attr r a
-height px _ =
-    [ Element.height (Element.px px) ]
+height px =
+    [ \_ -> Element.height (Element.px px) ]
 
 
 maxHeight : Attr r a
-maxHeight _ =
-    [ Element.height Element.fill ]
+maxHeight =
+    [ \_ -> Element.height Element.fill ]
 
 
 width : Int -> Attr r a
-width px _ =
-    [ Element.width (Element.px px) ]
+width px =
+    [ \_ -> Element.width (Element.px px) ]
 
 
 maxWidth : Attr r a
-maxWidth _ =
-    [ Element.width Element.fill ]
+maxWidth =
+    [ \_ -> Element.width Element.fill ]
 
 
 padding : Int -> Int -> Int -> Int -> Attr r a
-padding a b c d _ =
-    [ Element.paddingEach { top = a, right = b, bottom = c, left = d } ]
+padding a b c d =
+    [ \_ -> Element.paddingEach { top = a, right = b, bottom = c, left = d } ]
 
 
 padding4 : Int -> Attr r a
-padding4 px _ =
-    [ Element.padding px ]
+padding4 px =
+    [ \_ -> Element.padding px ]
 
 
 spacing : Int -> Attr r a
-spacing px _ =
-    [ Element.spacing px ]
+spacing px =
+    [ \_ -> Element.spacing px ]
 
 
 
@@ -284,8 +294,8 @@ spacing px _ =
 
 
 fontFamily : List Font -> Attr r a
-fontFamily xs _ =
-    [ Font.family xs ]
+fontFamily xs =
+    [ \_ -> Font.family xs ]
 
 
 serif : Font
@@ -309,38 +319,38 @@ typeface =
 
 
 size : Int -> Attr r a
-size px _ =
-    [ Font.size px ]
+size px =
+    [ \_ -> Font.size px ]
 
 
 fontColor : Color -> Attr r a
-fontColor c _ =
-    [ Font.color c ]
+fontColor c =
+    [ \_ -> Font.color c ]
 
 
 bold : Attr r a
-bold _ =
-    [ Font.bold ]
+bold =
+    [ \_ -> Font.bold ]
 
 
 italic : Attr r a
-italic _ =
-    [ Font.italic ]
+italic =
+    [ \_ -> Font.italic ]
 
 
 underline : Attr r a
-underline _ =
-    [ Font.underline ]
+underline =
+    [ \_ -> Font.underline ]
 
 
 strikethrough : Attr r a
-strikethrough _ =
-    [ Font.strike ]
+strikethrough =
+    [ \_ -> Font.strike ]
 
 
 fontCenter : Attr r a
-fontCenter _ =
-    [ Font.center ]
+fontCenter =
+    [ \_ -> Font.center ]
 
 
 
@@ -349,24 +359,24 @@ fontCenter _ =
 
 
 border : Color -> Int -> Int -> Int -> Int -> Attr r a
-border co a b c d _ =
-    [ Border.color co
-    , Border.solid
-    , Border.widthEach { top = a, right = b, bottom = c, left = d }
+border co a b c d =
+    [ \_ -> Border.color co
+    , \_ -> Border.solid
+    , \_ -> Border.widthEach { top = a, right = b, bottom = c, left = d }
     ]
 
 
 border4 : Color -> Int -> Attr r a
-border4 c px _ =
-    [ Border.color c
-    , Border.solid
-    , Border.width px
+border4 c px =
+    [ \_ -> Border.color c
+    , \_ -> Border.solid
+    , \_ -> Border.width px
     ]
 
 
 roundedCorners : Int -> Attr r a
-roundedCorners px _ =
-    [ Border.rounded px ]
+roundedCorners px =
+    [ \_ -> Border.rounded px ]
 
 
 
@@ -375,8 +385,8 @@ roundedCorners px _ =
 
 
 background : Color -> Attr r a
-background c _ =
-    [ Background.color c ]
+background c =
+    [ \_ -> Background.color c ]
 
 
 rgb : Int -> Int -> Int -> Color
@@ -395,8 +405,8 @@ autocomplete b =
 
 
 cursorText : Attr r a
-cursorText _ =
-    [ Element.htmlAttribute (Html.Attributes.style "cursor" "text") ]
+cursorText =
+    [ \_ -> Element.htmlAttribute (Html.Attributes.style "cursor" "text") ]
 
 
 id : String -> Attr r a
@@ -405,13 +415,13 @@ id x =
 
 
 pointer : Attr r a
-pointer _ =
-    [ Element.pointer ]
+pointer =
+    [ \_ -> Element.pointer ]
 
 
 unselectable : Attr r a
-unselectable _ =
-    [ Element.htmlAttribute (Html.Attributes.style "user-select" "none") ]
+unselectable =
+    [ \_ -> Element.htmlAttribute (Html.Attributes.style "user-select" "none") ]
 
 
 
@@ -421,7 +431,7 @@ unselectable _ =
 
 image : List (Attr r a) -> { src : String, description : String } -> El r a
 image attrs img r =
-    Element.image (List.concat (List.map (\a -> a r) attrs)) img
+    Element.image (toAttrs r attrs) img
 
 
 
@@ -430,65 +440,66 @@ image attrs img r =
 
 
 onClick : a -> Attr r a
-onClick x _ =
-    [ Events.onClick x ]
+onClick x =
+    [ \_ -> Events.onClick x ]
 
 
 onDoubleClick : a -> Attr r a
-onDoubleClick x _ =
-    [ Events.onDoubleClick x ]
+onDoubleClick x =
+    [ \_ -> Events.onDoubleClick x ]
 
 
 onMouseDown : a -> Attr r a
-onMouseDown x _ =
-    [ Events.onMouseDown x ]
+onMouseDown x =
+    [ \_ -> Events.onMouseDown x ]
 
 
 onFocus : a -> Attr r a
-onFocus x _ =
-    [ Events.onFocus x ]
+onFocus x =
+    [ \_ -> Events.onFocus x ]
 
 
 onLoseFocus : a -> Attr r a
-onLoseFocus x _ =
-    [ Events.onLoseFocus x ]
+onLoseFocus x =
+    [ \_ -> Events.onLoseFocus x ]
 
 
 onMouseUp : a -> Attr r a
-onMouseUp x _ =
-    [ Events.onMouseUp x ]
+onMouseUp x =
+    [ \_ -> Events.onMouseUp x ]
 
 
 onMouseEnter : a -> Attr r a
-onMouseEnter x _ =
-    [ Events.onMouseEnter x ]
+onMouseEnter x =
+    [ \_ -> Events.onMouseEnter x ]
 
 
 onMouseLeave : a -> Attr r a
-onMouseLeave x _ =
-    [ Events.onMouseLeave x ]
+onMouseLeave x =
+    [ \_ -> Events.onMouseLeave x ]
 
 
 onMouseMove : a -> Attr r a
-onMouseMove x _ =
-    [ Events.onMouseMove x ]
+onMouseMove x =
+    [ \_ -> Events.onMouseMove x ]
 
 
 onEnter : a -> Attr r a
-onEnter x _ =
-    [ Element.htmlAttribute
-        (Html.Events.on "keyup"
-            (Json.Decode.field "key" Json.Decode.string
-                |> Json.Decode.andThen
-                    (\key ->
-                        if key == "Enter" then
-                            Json.Decode.succeed x
+onEnter x =
+    [ \_ ->
+        Element.htmlAttribute
+            (Html.Events.on "keyup"
+                (Json.Decode.field "key" Json.Decode.string
+                    |> Json.Decode.andThen
+                        (\key ->
+                            if key == "Enter" then
+                                Json.Decode.succeed x
 
-                        else
-                            Json.Decode.fail ""
-                    )
+                            else
+                                Json.Decode.fail ""
+                        )
+                )
             )
-        )
     ]
 
 
@@ -498,22 +509,22 @@ onEnter x _ =
 
 
 attrIf : Bool -> List (Attr r a) -> Attr r a
-attrIf b attrs r =
+attrIf b attrs =
     if b then
-        List.concat (List.map (\a -> a r) attrs)
+        List.concat attrs
 
     else
         []
 
 
 attrWhen : Maybe a -> (a -> List (Attr r b)) -> Attr r b
-attrWhen mattrs f r =
+attrWhen mattrs f =
     case mattrs of
         Nothing ->
             []
 
         Just attrs ->
-            List.concat (List.map (\a -> a r) (f attrs))
+            List.concat (f attrs)
 
 
 elIf : Bool -> El r a -> El r a
