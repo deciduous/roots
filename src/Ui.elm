@@ -37,7 +37,6 @@ module Ui exposing
     , lazy2
     , lazy3
     , lazy4
-    , lazy5
     , left
     , link
     , maxHeight
@@ -90,16 +89,16 @@ import Json.Decode
 import Svg
 
 
-type alias Attr a =
-    List (Element.Attribute a)
+type alias Attr r a =
+    r -> List (Element.Attribute a)
 
 
 type alias Color =
     Element.Color
 
 
-type alias El a =
-    Element.Element a
+type alias El r a =
+    r -> Element.Element a
 
 
 type alias Font =
@@ -114,9 +113,9 @@ type alias Svg a =
     Svg.Svg a
 
 
-toHtml : List Option -> List (Attr a) -> El a -> Html a
-toHtml options attrs =
-    Element.layoutWith { options = options } (List.concat attrs)
+toHtml : List Option -> List (Attr r a) -> El r a -> r -> Html a
+toHtml options attrs elem r =
+    Element.layoutWith { options = options } (List.concat (List.map (\a -> a r) attrs)) (elem r)
 
 
 focusStyle : Element.FocusStyle -> Option
@@ -129,38 +128,38 @@ focusStyle =
 -- Basic elements
 
 
-none : El a
-none =
+none : El r a
+none _ =
     Element.none
 
 
-text : String -> El a
-text =
-    Element.text
+text : String -> El r a
+text s _ =
+    Element.text s
 
 
-paragraph : List (Attr a) -> List (El a) -> El a
-paragraph attrs =
-    Element.paragraph (List.concat attrs)
+paragraph : List (Attr r a) -> List (El r a) -> El r a
+paragraph attrs es r =
+    Element.paragraph (List.concat (List.map (\a -> a r) attrs)) (List.map (\e -> e r) es)
 
 
-link : List (Attr a) -> { label : El a, url : String } -> El a
-link attrs =
-    Element.link (List.concat attrs)
+link : List (Attr r a) -> { label : El r a, url : String } -> El r a
+link attrs { label, url } r =
+    Element.link (List.concat (List.map (\a -> a r) attrs)) { label = label r, url = url }
 
 
-svg : List (Html.Attribute a) -> List (Svg a) -> El a
-svg xs ys =
+svg : List (Html.Attribute a) -> List (Svg a) -> El r a
+svg xs ys _ =
     Element.html (Svg.svg xs ys)
 
 
-attr : String -> String -> Attr a
-attr k v =
+attr : String -> String -> Attr r a
+attr k v _ =
     [ Element.htmlAttribute (Html.Attributes.attribute k v) ]
 
 
-attr_ : Html.Attribute a -> Attr a
-attr_ x =
+attr_ : Html.Attribute a -> Attr r a
+attr_ x _ =
     [ Element.htmlAttribute x ]
 
 
@@ -169,19 +168,19 @@ attr_ x =
 -- Container elements
 
 
-el : List (Attr a) -> El a -> El a
-el attrs =
-    Element.el (List.concat attrs)
+el : List (Attr r a) -> El r a -> El r a
+el attrs e r =
+    Element.el (List.concat (List.map (\a -> a r) attrs)) (e r)
 
 
-col : List (Attr a) -> List (El a) -> El a
-col attrs =
-    Element.column (List.concat attrs)
+col : List (Attr r a) -> List (El r a) -> El r a
+col attrs es r =
+    Element.column (List.concat (List.map (\a -> a r) attrs)) (List.map (\e -> e r) es)
 
 
-row : List (Attr a) -> List (El a) -> El a
-row attrs =
-    Element.row (List.concat attrs)
+row : List (Attr r a) -> List (El r a) -> El r a
+row attrs es r =
+    Element.row (List.concat (List.map (\a -> a r) attrs)) (List.map (\e -> e r) es)
 
 
 
@@ -189,53 +188,53 @@ row attrs =
 -- Positioning
 
 
-above : El a -> Attr a
-above x =
-    [ Element.above x ]
+above : El r a -> Attr r a
+above e r =
+    [ Element.above (e r) ]
 
 
-below : El a -> Attr a
-below x =
-    [ Element.below x ]
+below : El r a -> Attr r a
+below e r =
+    [ Element.below (e r) ]
 
 
-inFrontOf : El a -> Attr a
-inFrontOf x =
-    [ Element.inFront x ]
+inFrontOf : El r a -> Attr r a
+inFrontOf e r =
+    [ Element.inFront (e r) ]
 
 
-behind : El a -> Attr a
-behind x =
-    [ Element.behindContent x ]
+behind : El r a -> Attr r a
+behind e r =
+    [ Element.behindContent (e r) ]
 
 
-bottom : Attr a
-bottom =
+bottom : Attr r a
+bottom _ =
     [ Element.alignBottom ]
 
 
-left : Attr a
-left =
+left : Attr r a
+left _ =
     [ Element.alignLeft ]
 
 
-right : Attr a
-right =
+right : Attr r a
+right _ =
     [ Element.alignRight ]
 
 
-top : Attr a
-top =
+top : Attr r a
+top _ =
     [ Element.alignTop ]
 
 
-centerX : Attr a
-centerX =
+centerX : Attr r a
+centerX _ =
     [ Element.centerX ]
 
 
-centerY : Attr a
-centerY =
+centerY : Attr r a
+centerY _ =
     [ Element.centerY ]
 
 
@@ -244,38 +243,38 @@ centerY =
 -- Sizing / padding / spacing
 
 
-height : Int -> Attr a
-height px =
+height : Int -> Attr r a
+height px _ =
     [ Element.height (Element.px px) ]
 
 
-maxHeight : Attr a
-maxHeight =
+maxHeight : Attr r a
+maxHeight _ =
     [ Element.height Element.fill ]
 
 
-width : Int -> Attr a
-width px =
+width : Int -> Attr r a
+width px _ =
     [ Element.width (Element.px px) ]
 
 
-maxWidth : Attr a
-maxWidth =
+maxWidth : Attr r a
+maxWidth _ =
     [ Element.width Element.fill ]
 
 
-padding : Int -> Int -> Int -> Int -> Attr a
-padding a b c d =
+padding : Int -> Int -> Int -> Int -> Attr r a
+padding a b c d _ =
     [ Element.paddingEach { top = a, right = b, bottom = c, left = d } ]
 
 
-padding4 : Int -> Attr a
-padding4 px =
+padding4 : Int -> Attr r a
+padding4 px _ =
     [ Element.padding px ]
 
 
-spacing : Int -> Attr a
-spacing px =
+spacing : Int -> Attr r a
+spacing px _ =
     [ Element.spacing px ]
 
 
@@ -284,8 +283,8 @@ spacing px =
 -- Font
 
 
-fontFamily : List Font -> Attr a
-fontFamily xs =
+fontFamily : List Font -> Attr r a
+fontFamily xs _ =
     [ Font.family xs ]
 
 
@@ -309,38 +308,38 @@ typeface =
     Font.typeface
 
 
-size : Int -> Attr a
-size px =
+size : Int -> Attr r a
+size px _ =
     [ Font.size px ]
 
 
-fontColor : Color -> Attr a
-fontColor c =
+fontColor : Color -> Attr r a
+fontColor c _ =
     [ Font.color c ]
 
 
-bold : Attr a
-bold =
+bold : Attr r a
+bold _ =
     [ Font.bold ]
 
 
-italic : Attr a
-italic =
+italic : Attr r a
+italic _ =
     [ Font.italic ]
 
 
-underline : Attr a
-underline =
+underline : Attr r a
+underline _ =
     [ Font.underline ]
 
 
-strikethrough : Attr a
-strikethrough =
+strikethrough : Attr r a
+strikethrough _ =
     [ Font.strike ]
 
 
-fontCenter : Attr a
-fontCenter =
+fontCenter : Attr r a
+fontCenter _ =
     [ Font.center ]
 
 
@@ -349,18 +348,24 @@ fontCenter =
 -- Border
 
 
-border : Color -> Int -> Int -> Int -> Int -> Attr a
-border co a b c d =
-    [ Border.color co, Border.solid, Border.widthEach { top = a, right = b, bottom = c, left = d } ]
+border : Color -> Int -> Int -> Int -> Int -> Attr r a
+border co a b c d _ =
+    [ Border.color co
+    , Border.solid
+    , Border.widthEach { top = a, right = b, bottom = c, left = d }
+    ]
 
 
-border4 : Color -> Int -> Attr a
-border4 c px =
-    [ Border.color c, Border.solid, Border.width px ]
+border4 : Color -> Int -> Attr r a
+border4 c px _ =
+    [ Border.color c
+    , Border.solid
+    , Border.width px
+    ]
 
 
-roundedCorners : Int -> Attr a
-roundedCorners px =
+roundedCorners : Int -> Attr r a
+roundedCorners px _ =
     [ Border.rounded px ]
 
 
@@ -369,8 +374,8 @@ roundedCorners px =
 -- Color
 
 
-background : Color -> Attr a
-background c =
+background : Color -> Attr r a
+background c _ =
     [ Background.color c ]
 
 
@@ -384,28 +389,28 @@ rgb =
 -- Misc
 
 
-autocomplete : Bool -> Attr a
+autocomplete : Bool -> Attr r a
 autocomplete b =
     attr_ (Html.Attributes.autocomplete b)
 
 
-cursorText : Attr a
-cursorText =
+cursorText : Attr r a
+cursorText _ =
     [ Element.htmlAttribute (Html.Attributes.style "cursor" "text") ]
 
 
-id : String -> Attr a
+id : String -> Attr r a
 id x =
     attr_ (Html.Attributes.id x)
 
 
-pointer : Attr a
-pointer =
+pointer : Attr r a
+pointer _ =
     [ Element.pointer ]
 
 
-unselectable : Attr a
-unselectable =
+unselectable : Attr r a
+unselectable _ =
     [ Element.htmlAttribute (Html.Attributes.style "user-select" "none") ]
 
 
@@ -414,9 +419,9 @@ unselectable =
 -- Images
 
 
-image : List (Attr a) -> { src : String, description : String } -> El a
-image attrs =
-    Element.image (List.concat attrs)
+image : List (Attr r a) -> { src : String, description : String } -> El r a
+image attrs img r =
+    Element.image (List.concat (List.map (\a -> a r) attrs)) img
 
 
 
@@ -424,53 +429,53 @@ image attrs =
 -- Events
 
 
-onClick : a -> Attr a
-onClick x =
+onClick : a -> Attr r a
+onClick x _ =
     [ Events.onClick x ]
 
 
-onDoubleClick : a -> Attr a
-onDoubleClick x =
+onDoubleClick : a -> Attr r a
+onDoubleClick x _ =
     [ Events.onDoubleClick x ]
 
 
-onMouseDown : a -> Attr a
-onMouseDown x =
+onMouseDown : a -> Attr r a
+onMouseDown x _ =
     [ Events.onMouseDown x ]
 
 
-onFocus : a -> Attr a
-onFocus x =
+onFocus : a -> Attr r a
+onFocus x _ =
     [ Events.onFocus x ]
 
 
-onLoseFocus : a -> Attr a
-onLoseFocus x =
+onLoseFocus : a -> Attr r a
+onLoseFocus x _ =
     [ Events.onLoseFocus x ]
 
 
-onMouseUp : a -> Attr a
-onMouseUp x =
+onMouseUp : a -> Attr r a
+onMouseUp x _ =
     [ Events.onMouseUp x ]
 
 
-onMouseEnter : a -> Attr a
-onMouseEnter x =
+onMouseEnter : a -> Attr r a
+onMouseEnter x _ =
     [ Events.onMouseEnter x ]
 
 
-onMouseLeave : a -> Attr a
-onMouseLeave x =
+onMouseLeave : a -> Attr r a
+onMouseLeave x _ =
     [ Events.onMouseLeave x ]
 
 
-onMouseMove : a -> Attr a
-onMouseMove x =
+onMouseMove : a -> Attr r a
+onMouseMove x _ =
     [ Events.onMouseMove x ]
 
 
-onEnter : a -> Attr a
-onEnter x =
+onEnter : a -> Attr r a
+onEnter x _ =
     [ Element.htmlAttribute
         (Html.Events.on "keyup"
             (Json.Decode.field "key" Json.Decode.string
@@ -492,42 +497,42 @@ onEnter x =
 -- Conditional elements/attributes
 
 
-attrIf : Bool -> List (Attr a) -> Attr a
-attrIf b x =
+attrIf : Bool -> List (Attr r a) -> Attr r a
+attrIf b attrs r =
     if b then
-        List.concat x
+        List.concat (List.map (\a -> a r) attrs)
 
     else
         []
 
 
-attrWhen : Maybe a -> (a -> List (Attr b)) -> Attr b
-attrWhen mx f =
-    case mx of
+attrWhen : Maybe a -> (a -> List (Attr r b)) -> Attr r b
+attrWhen mattrs f r =
+    case mattrs of
         Nothing ->
             []
 
-        Just x ->
-            List.concat (f x)
+        Just attrs ->
+            List.concat (List.map (\a -> a r) (f attrs))
 
 
-elIf : Bool -> El a -> El a
-elIf b x =
+elIf : Bool -> El r a -> El r a
+elIf b e r =
     if b then
-        x
+        e r
 
     else
         Element.none
 
 
-elWhen : Maybe a -> (a -> El b) -> El b
-elWhen mx f =
-    case mx of
+elWhen : Maybe a -> (a -> El r b) -> El r b
+elWhen me f r =
+    case me of
         Nothing ->
             Element.none
 
-        Just x ->
-            f x
+        Just e ->
+            f e r
 
 
 
@@ -535,26 +540,21 @@ elWhen mx f =
 -- Lazy elements
 
 
-lazy : (a -> El b) -> a -> El b
+lazy : (a -> El r b) -> a -> El r b
 lazy =
-    Lazy.lazy
-
-
-lazy2 : (a -> b -> El c) -> a -> b -> El c
-lazy2 =
     Lazy.lazy2
 
 
-lazy3 : (a -> b -> c -> El d) -> a -> b -> c -> El d
-lazy3 =
+lazy2 : (a -> b -> El r c) -> a -> b -> El r c
+lazy2 =
     Lazy.lazy3
 
 
-lazy4 : (a -> b -> c -> d -> El e) -> a -> b -> c -> d -> El e
-lazy4 =
+lazy3 : (a -> b -> c -> El r d) -> a -> b -> c -> El r d
+lazy3 =
     Lazy.lazy4
 
 
-lazy5 : (a -> b -> c -> d -> e -> El f) -> a -> b -> c -> d -> e -> El f
-lazy5 =
+lazy4 : (a -> b -> c -> d -> El r e) -> a -> b -> c -> d -> El r e
+lazy4 =
     Lazy.lazy5
