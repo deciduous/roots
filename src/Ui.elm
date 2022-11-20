@@ -7,6 +7,7 @@ module Ui exposing
     , Svg
     , above
     , attr
+    , attrEnv
     , attrIf
     , attrWhen
     , autocomplete
@@ -90,7 +91,13 @@ import Svg
 
 
 type alias Attr r a =
-    List (r -> Element.Attribute a)
+    List (Attr_ r a)
+
+
+type Attr_ r a
+    = A0 (Element.Attribute a)
+    | A1 (r -> Element.Attribute a)
+    | A2 (r -> Attr r a)
 
 
 type alias Color =
@@ -119,8 +126,26 @@ toHtml options attrs elem r =
 
 
 toAttrs : r -> List (Attr r a) -> List (Element.Attribute a)
-toAttrs r attrs =
-    List.map (\a -> a r) (List.concat attrs)
+toAttrs r =
+    List.concatMap (toAttrs1 r)
+
+
+toAttrs1 : r -> Attr r a -> List (Element.Attribute a)
+toAttrs1 r =
+    List.concatMap (toAttrs_ r)
+
+
+toAttrs_ : r -> Attr_ r a -> List (Element.Attribute a)
+toAttrs_ r a0 =
+    case a0 of
+        A0 a1 ->
+            [ a1 ]
+
+        A1 a1 ->
+            [ a1 r ]
+
+        A2 a1 ->
+            toAttrs1 r (a1 r)
 
 
 toElems : r -> List (El r a) -> List (Element.Element a)
@@ -165,12 +190,12 @@ svg xs ys _ =
 
 attr : String -> String -> Attr r a
 attr k v =
-    [ \_ -> Element.htmlAttribute (Html.Attributes.attribute k v) ]
+    [ A0 (Element.htmlAttribute (Html.Attributes.attribute k v)) ]
 
 
 attr_ : Html.Attribute a -> Attr r a
 attr_ x =
-    [ \_ -> Element.htmlAttribute x ]
+    [ A0 (Element.htmlAttribute x) ]
 
 
 
@@ -193,6 +218,11 @@ row attrs es r =
     Element.row (toAttrs r attrs) (toElems r es)
 
 
+attrEnv : (r -> Attr r a) -> Attr r a
+attrEnv f =
+    [ A2 f ]
+
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Positioning
@@ -200,52 +230,52 @@ row attrs es r =
 
 above : El r a -> Attr r a
 above e =
-    [ \r -> Element.above (e r) ]
+    [ A1 (\r -> Element.above (e r)) ]
 
 
 below : El r a -> Attr r a
 below e =
-    [ \r -> Element.below (e r) ]
+    [ A1 (\r -> Element.below (e r)) ]
 
 
 inFrontOf : El r a -> Attr r a
 inFrontOf e =
-    [ \r -> Element.inFront (e r) ]
+    [ A1 (\r -> Element.inFront (e r)) ]
 
 
 behind : El r a -> Attr r a
 behind e =
-    [ \r -> Element.behindContent (e r) ]
+    [ A1 (\r -> Element.behindContent (e r)) ]
 
 
 bottom : Attr r a
 bottom =
-    [ \_ -> Element.alignBottom ]
+    [ A0 Element.alignBottom ]
 
 
 left : Attr r a
 left =
-    [ \_ -> Element.alignLeft ]
+    [ A0 Element.alignLeft ]
 
 
 right : Attr r a
 right =
-    [ \_ -> Element.alignRight ]
+    [ A0 Element.alignRight ]
 
 
 top : Attr r a
 top =
-    [ \_ -> Element.alignTop ]
+    [ A0 Element.alignTop ]
 
 
 centerX : Attr r a
 centerX =
-    [ \_ -> Element.centerX ]
+    [ A0 Element.centerX ]
 
 
 centerY : Attr r a
 centerY =
-    [ \_ -> Element.centerY ]
+    [ A0 Element.centerY ]
 
 
 
@@ -255,37 +285,37 @@ centerY =
 
 height : Int -> Attr r a
 height px =
-    [ \_ -> Element.height (Element.px px) ]
+    [ A0 (Element.height (Element.px px)) ]
 
 
 maxHeight : Attr r a
 maxHeight =
-    [ \_ -> Element.height Element.fill ]
+    [ A0 (Element.height Element.fill) ]
 
 
 width : Int -> Attr r a
 width px =
-    [ \_ -> Element.width (Element.px px) ]
+    [ A0 (Element.width (Element.px px)) ]
 
 
 maxWidth : Attr r a
 maxWidth =
-    [ \_ -> Element.width Element.fill ]
+    [ A0 (Element.width Element.fill) ]
 
 
 padding : Int -> Int -> Int -> Int -> Attr r a
 padding a b c d =
-    [ \_ -> Element.paddingEach { top = a, right = b, bottom = c, left = d } ]
+    [ A0 (Element.paddingEach { top = a, right = b, bottom = c, left = d }) ]
 
 
 padding4 : Int -> Attr r a
 padding4 px =
-    [ \_ -> Element.padding px ]
+    [ A0 (Element.padding px) ]
 
 
 spacing : Int -> Attr r a
 spacing px =
-    [ \_ -> Element.spacing px ]
+    [ A0 (Element.spacing px) ]
 
 
 
@@ -295,7 +325,7 @@ spacing px =
 
 fontFamily : List Font -> Attr r a
 fontFamily xs =
-    [ \_ -> Font.family xs ]
+    [ A0 (Font.family xs) ]
 
 
 serif : Font
@@ -320,37 +350,37 @@ typeface =
 
 size : Int -> Attr r a
 size px =
-    [ \_ -> Font.size px ]
+    [ A0 (Font.size px) ]
 
 
 fontColor : Color -> Attr r a
 fontColor c =
-    [ \_ -> Font.color c ]
+    [ A0 (Font.color c) ]
 
 
 bold : Attr r a
 bold =
-    [ \_ -> Font.bold ]
+    [ A0 Font.bold ]
 
 
 italic : Attr r a
 italic =
-    [ \_ -> Font.italic ]
+    [ A0 Font.italic ]
 
 
 underline : Attr r a
 underline =
-    [ \_ -> Font.underline ]
+    [ A0 Font.underline ]
 
 
 strikethrough : Attr r a
 strikethrough =
-    [ \_ -> Font.strike ]
+    [ A0 Font.strike ]
 
 
 fontCenter : Attr r a
 fontCenter =
-    [ \_ -> Font.center ]
+    [ A0 Font.center ]
 
 
 
@@ -360,23 +390,23 @@ fontCenter =
 
 border : Color -> Int -> Int -> Int -> Int -> Attr r a
 border co a b c d =
-    [ \_ -> Border.color co
-    , \_ -> Border.solid
-    , \_ -> Border.widthEach { top = a, right = b, bottom = c, left = d }
+    [ A0 (Border.color co)
+    , A0 Border.solid
+    , A0 (Border.widthEach { top = a, right = b, bottom = c, left = d })
     ]
 
 
 border4 : Color -> Int -> Attr r a
 border4 c px =
-    [ \_ -> Border.color c
-    , \_ -> Border.solid
-    , \_ -> Border.width px
+    [ A0 (Border.color c)
+    , A0 Border.solid
+    , A0 (Border.width px)
     ]
 
 
 roundedCorners : Int -> Attr r a
 roundedCorners px =
-    [ \_ -> Border.rounded px ]
+    [ A0 (Border.rounded px) ]
 
 
 
@@ -386,7 +416,7 @@ roundedCorners px =
 
 background : Color -> Attr r a
 background c =
-    [ \_ -> Background.color c ]
+    [ A0 (Background.color c) ]
 
 
 rgb : Int -> Int -> Int -> Color
@@ -406,7 +436,7 @@ autocomplete b =
 
 cursorText : Attr r a
 cursorText =
-    [ \_ -> Element.htmlAttribute (Html.Attributes.style "cursor" "text") ]
+    [ A0 (Element.htmlAttribute (Html.Attributes.style "cursor" "text")) ]
 
 
 id : String -> Attr r a
@@ -416,12 +446,12 @@ id x =
 
 pointer : Attr r a
 pointer =
-    [ \_ -> Element.pointer ]
+    [ A0 Element.pointer ]
 
 
 unselectable : Attr r a
 unselectable =
-    [ \_ -> Element.htmlAttribute (Html.Attributes.style "user-select" "none") ]
+    [ A0 (Element.htmlAttribute (Html.Attributes.style "user-select" "none")) ]
 
 
 
@@ -441,53 +471,53 @@ image attrs img r =
 
 onClick : a -> Attr r a
 onClick x =
-    [ \_ -> Events.onClick x ]
+    [ A0 (Events.onClick x) ]
 
 
 onDoubleClick : a -> Attr r a
 onDoubleClick x =
-    [ \_ -> Events.onDoubleClick x ]
+    [ A0 (Events.onDoubleClick x) ]
 
 
 onMouseDown : a -> Attr r a
 onMouseDown x =
-    [ \_ -> Events.onMouseDown x ]
+    [ A0 (Events.onMouseDown x) ]
 
 
 onFocus : a -> Attr r a
 onFocus x =
-    [ \_ -> Events.onFocus x ]
+    [ A0 (Events.onFocus x) ]
 
 
 onLoseFocus : a -> Attr r a
 onLoseFocus x =
-    [ \_ -> Events.onLoseFocus x ]
+    [ A0 (Events.onLoseFocus x) ]
 
 
 onMouseUp : a -> Attr r a
 onMouseUp x =
-    [ \_ -> Events.onMouseUp x ]
+    [ A0 (Events.onMouseUp x) ]
 
 
 onMouseEnter : a -> Attr r a
 onMouseEnter x =
-    [ \_ -> Events.onMouseEnter x ]
+    [ A0 (Events.onMouseEnter x) ]
 
 
 onMouseLeave : a -> Attr r a
 onMouseLeave x =
-    [ \_ -> Events.onMouseLeave x ]
+    [ A0 (Events.onMouseLeave x) ]
 
 
 onMouseMove : a -> Attr r a
 onMouseMove x =
-    [ \_ -> Events.onMouseMove x ]
+    [ A0 (Events.onMouseMove x) ]
 
 
 onEnter : a -> Attr r a
 onEnter x =
-    [ \_ ->
-        Element.htmlAttribute
+    [ A0
+        (Element.htmlAttribute
             (Html.Events.on "keyup"
                 (Json.Decode.field "key" Json.Decode.string
                     |> Json.Decode.andThen
@@ -500,6 +530,7 @@ onEnter x =
                         )
                 )
             )
+        )
     ]
 
 
