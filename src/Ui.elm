@@ -39,6 +39,7 @@ module Ui exposing
     , lazy3
     , lazy4
     , left
+    , lineHeight
     , link
     , maxHeight
     , maxWidth
@@ -57,6 +58,7 @@ module Ui exposing
     , padding
     , padding4
     , paragraph
+    , paragraphs
     , pointer
     , rgb
     , right
@@ -98,6 +100,8 @@ type Attr_ r a
     = A0 (Element.Attribute a)
     | A1 (r -> Element.Attribute a)
     | A2 (r -> Attr r a)
+    | LineHeight Int
+    | Size Int
 
 
 type alias Color =
@@ -147,6 +151,14 @@ toAttrs_ r a0 =
         A2 a1 ->
             toAttrs1 r (a1 r)
 
+        -- You're not supposed to get here where it matters (in a paragraph), because we intercept attrs with both
+        -- lineHeight and size and use it to compute paragraph spacing.
+        LineHeight _ ->
+            []
+
+        Size px ->
+            [ Font.size px ]
+
 
 toElems : r -> List (El r a) -> List (Element.Element a)
 toElems r es =
@@ -174,8 +186,107 @@ text attrs s r =
 
 
 paragraph : List (Attr r a) -> List (El r a) -> El r a
-paragraph attrs es r =
-    Element.paragraph (toAttrs r attrs) (toElems r es)
+paragraph attrs0 es r =
+    let
+        attrs1 =
+            List.concat attrs0
+
+        attrs2 =
+            case pluckParagraphSpacing attrs1 of
+                Nothing ->
+                    attrs1
+
+                Just ( lh, s ) ->
+                    A0 (Element.spacing (lh - s)) :: attrs1
+    in
+    Element.paragraph (List.concatMap (toAttrs_ r) attrs2) (toElems r es)
+
+
+paragraphs : List (Attr r a) -> List (List (El r a)) -> El r a
+paragraphs attrs0 es r =
+    let
+        attrs1 =
+            List.concat attrs0
+
+        attrs2 =
+            List.concatMap (toAttrs_ r) attrs1
+
+        paragraphSpacing =
+            pluckParagraphSpacing attrs1
+
+        columnAttrs =
+            case paragraphSpacing of
+                Nothing ->
+                    attrs2
+
+                Just ( lh, _ ) ->
+                    Element.spacing lh :: attrs2
+
+        paragraphAttrs =
+            case paragraphSpacing of
+                Nothing ->
+                    []
+
+                Just ( lh, s ) ->
+                    [ Element.spacing (lh - s) ]
+    in
+    Element.column
+        columnAttrs
+        (List.map (\e -> Element.paragraph paragraphAttrs (toElems r e)) es)
+
+
+{-| Try to pluck paragraph spacing (line height, size) out of a list of attributes.
+-}
+pluckParagraphSpacing : List (Attr_ r a) -> Maybe ( Int, Int )
+pluckParagraphSpacing =
+    let
+        loopWithLineHeight : Int -> List (Attr_ r a) -> Maybe ( Int, Int )
+        loopWithLineHeight lh attrs0 =
+            case attrs0 of
+                -- eh? line height without size
+                [] ->
+                    Nothing
+
+                a0 :: attrs ->
+                    case a0 of
+                        Size s ->
+                            Just ( lh, s )
+
+                        _ ->
+                            loopWithLineHeight lh attrs
+
+        loopWithSize : Int -> List (Attr_ r a) -> Maybe ( Int, Int )
+        loopWithSize s attrs0 =
+            case attrs0 of
+                [] ->
+                    Nothing
+
+                a0 :: attrs ->
+                    case a0 of
+                        LineHeight lh ->
+                            Just ( lh, s )
+
+                        _ ->
+                            loopWithSize s attrs
+
+        loop : List (Attr_ r a) -> Maybe ( Int, Int )
+        loop attrs0 =
+            case attrs0 of
+                [] ->
+                    Nothing
+
+                a0 :: attrs ->
+                    case a0 of
+                        LineHeight lh ->
+                            loopWithLineHeight lh attrs
+
+                        Size s ->
+                            loopWithSize s attrs
+
+                        _ ->
+                            loop attrs
+    in
+    loop
 
 
 link : List (Attr r a) -> { label : String, url : String } -> El r a
@@ -350,7 +461,15 @@ typeface =
 
 size : Int -> Attr r a
 size px =
-    [ A0 (Font.size px) ]
+    [ Size px ]
+
+
+{-| Set the line height of a paragraph. This attribute has no effect if it is not paired with @size@, because both
+attributes are needed to compute the paragraph's spacing.
+-}
+lineHeight : Int -> Attr r a
+lineHeight px =
+    [ LineHeight px ]
 
 
 fontColor : Color -> Attr r a
