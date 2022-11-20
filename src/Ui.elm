@@ -168,9 +168,9 @@ none _ =
     Element.none
 
 
-text : String -> El r a
-text s _ =
-    Element.text s
+text : List (Attr r a) -> String -> El r a
+text attrs s r =
+    Element.el (toAttrs r attrs) (Element.text s)
 
 
 paragraph : List (Attr r a) -> List (El r a) -> El r a
@@ -178,9 +178,9 @@ paragraph attrs es r =
     Element.paragraph (toAttrs r attrs) (toElems r es)
 
 
-link : List (Attr r a) -> { label : El r a, url : String } -> El r a
+link : List (Attr r a) -> { label : String, url : String } -> El r a
 link attrs { label, url } r =
-    Element.link (toAttrs r attrs) { label = label r, url = url }
+    Element.link (toAttrs r attrs) { label = Element.text label, url = url }
 
 
 svg : List (Html.Attribute a) -> List (Svg a) -> El r a
