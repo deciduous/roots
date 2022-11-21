@@ -9,6 +9,7 @@ module Roots.Json exposing
     , object0
     , object2
     , object4
+    , object5
     , object8
     , objectVariantCodec
     , string
@@ -159,6 +160,39 @@ object4 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd 
                             , ( kb, cb.encoder b )
                             , ( kc, cc.encoder c )
                             , ( kd, cd.encoder d )
+                            ]
+        }
+
+
+object5 :
+    (a -> b -> c -> d -> e -> f)
+    -> (f -> T5 a b c d e)
+    -> ( String, Codec a )
+    -> ( String, Codec b )
+    -> ( String, Codec c )
+    -> ( String, Codec d )
+    -> ( String, Codec e )
+    -> Codec f
+object5 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) =
+    Codec
+        { decoder =
+            Json.Decode.map5
+                f0
+                (Json.Decode.field ka ca.decoder)
+                (Json.Decode.field kb cb.decoder)
+                (Json.Decode.field kc cc.decoder)
+                (Json.Decode.field kd cd.decoder)
+                (Json.Decode.field ke ce.decoder)
+        , encoder =
+            \f ->
+                case f1 f of
+                    T5 a b c d e ->
+                        Json.Encode.object
+                            [ ( ka, ca.encoder a )
+                            , ( kb, cb.encoder b )
+                            , ( kc, cc.encoder c )
+                            , ( kd, cd.encoder d )
+                            , ( ke, ce.encoder e )
                             ]
         }
 
