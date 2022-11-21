@@ -1,6 +1,8 @@
 module Roots.Ui exposing
-    ( none, text, paragraph, paragraphs
-    , Attr, Color, El, Font, Option, Svg, above, attr, attrEnv, attrIf, attrWhen, autocomplete, background, behind, below, bold, border, border4, bottom, centerX, centerY, col, cursorText, el, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, height, id, image, inFrontOf, italic, lazy, lazy2, lazy3, lazy4, left, lineHeight, link, maxHeight, maxWidth, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, padding, padding4, pointer, rgb, right, roundedCorners, row, sansSerif, serif, size, spacing, strikethrough, svg, toHtml, top, typeface, underline, unselectable, width
+    ( none, text, paragraph, paragraphs, link, svg
+    , el, col, row, attrEnv
+    , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
+    , Attr, Color, El, Font, Option, Svg, attr, attrIf, attrWhen, autocomplete, background, bold, border, border4, cursorText, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, height, id, image, italic, lazy, lazy2, lazy3, lazy4, lineHeight, maxHeight, maxWidth, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, padding, padding4, pointer, rgb, roundedCorners, sansSerif, serif, size, spacing, strikethrough, toHtml, typeface, underline, unselectable, width
     )
 
 {-|
@@ -9,6 +11,16 @@ module Roots.Ui exposing
 # Basic elements
 
 @docs none, text, paragraph, paragraphs, link, svg
+
+
+# Container elements
+
+@docs el, col, row, attrEnv
+
+
+# Positioning
+
+@docs above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
 
 -}
 
@@ -277,9 +289,19 @@ above e =
     [ A1 (\r -> Element.above (e r)) ]
 
 
+onRight : El r a -> Attr r a
+onRight e =
+    [ A1 (\r -> Element.onRight (e r)) ]
+
+
 below : El r a -> Attr r a
 below e =
     [ A1 (\r -> Element.below (e r)) ]
+
+
+onLeft : El r a -> Attr r a
+onLeft e =
+    [ A1 (\r -> Element.onLeft (e r)) ]
 
 
 inFrontOf : El r a -> Attr r a
@@ -292,6 +314,16 @@ behind e =
     [ A1 (\r -> Element.behindContent (e r)) ]
 
 
+top : Attr r a
+top =
+    [ A0 Element.alignTop ]
+
+
+right : Attr r a
+right =
+    [ A0 Element.alignRight ]
+
+
 bottom : Attr r a
 bottom =
     [ A0 Element.alignBottom ]
@@ -300,16 +332,6 @@ bottom =
 left : Attr r a
 left =
     [ A0 Element.alignLeft ]
-
-
-right : Attr r a
-right =
-    [ A0 Element.alignRight ]
-
-
-top : Attr r a
-top =
-    [ A0 Element.alignTop ]
 
 
 centerX : Attr r a
