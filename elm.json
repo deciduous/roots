@@ -1,13 +1,4 @@
 {
-    "type": "package",
-    "name": "deciduous/roots",
-    "summary": "A modern standard library.",
-    "license": "BSD-3-Clause",
-    "version": "0.0.0",
-    "exposed-modules": [
-        "Roots.List"
-    ],
-    "elm-version": "0.19.1 <= v < 0.20.0",
     "dependencies": {
         "elm/core": "1.0.5 <= v < 2.0.0",
         "elm/html": "1.0.0 <= v < 2.0.0",
@@ -15,5 +6,24 @@
         "elm/svg": "1.0.1 <= v < 2.0.0",
         "mdgriffith/elm-ui": "1.1.8 <= v < 2.0.0"
     },
+    "exposed-modules": [
+        "Roots",
+        "Roots.Array",
+        "Roots.ArrayZipper",
+        "Roots.Dict",
+        "Roots.Json",
+        "Roots.List",
+        "Roots.Maybe",
+        "Roots.Prism",
+        "Roots.String",
+        "Roots.Ui",
+        "Roots.Update"
+    ],
+    "license": "BSD-3-Clause",
+    "name": "deciduous/roots",
+    "summary": "A modern standard library.",
+    "type": "package",
+    "version": "0.1.0",
+    "elm-version": "0.19.1 <= v < 0.20.0",
     "test-dependencies": {}
 }

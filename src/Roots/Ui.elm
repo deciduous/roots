@@ -1,83 +1,16 @@
 module Roots.Ui exposing
-    ( Attr
-    , Color
-    , El
-    , Font
-    , Option
-    , Svg
-    , above
-    , attr
-    , attrEnv
-    , attrIf
-    , attrWhen
-    , autocomplete
-    , background
-    , behind
-    , below
-    , bold
-    , border
-    , border4
-    , bottom
-    , centerX
-    , centerY
-    , col
-    , cursorText
-    , el
-    , elIf
-    , elWhen
-    , focusStyle
-    , fontCenter
-    , fontColor
-    , fontFamily
-    , height
-    , id
-    , image
-    , inFrontOf
-    , italic
-    , lazy
-    , lazy2
-    , lazy3
-    , lazy4
-    , left
-    , lineHeight
-    , link
-    , maxHeight
-    , maxWidth
-    , monospace
-    , none
-    , onClick
-    , onDoubleClick
-    , onEnter
-    , onFocus
-    , onLoseFocus
-    , onMouseDown
-    , onMouseEnter
-    , onMouseLeave
-    , onMouseMove
-    , onMouseUp
-    , padding
-    , padding4
-    , paragraph
-    , paragraphs
-    , pointer
-    , rgb
-    , right
-    , roundedCorners
-    , row
-    , sansSerif
-    , serif
-    , size
-    , spacing
-    , strikethrough
-    , svg
-    , text
-    , toHtml
-    , top
-    , typeface
-    , underline
-    , unselectable
-    , width
+    ( none, text, paragraph, paragraphs
+    , Attr, Color, El, Font, Option, Svg, above, attr, attrEnv, attrIf, attrWhen, autocomplete, background, behind, below, bold, border, border4, bottom, centerX, centerY, col, cursorText, el, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, height, id, image, inFrontOf, italic, lazy, lazy2, lazy3, lazy4, left, lineHeight, link, maxHeight, maxWidth, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, padding, padding4, pointer, rgb, right, roundedCorners, row, sansSerif, serif, size, spacing, strikethrough, svg, toHtml, top, typeface, underline, unselectable, width
     )
+
+{-|
+
+
+# Basic elements
+
+@docs none, text, paragraph, paragraphs, link, svg
+
+-}
 
 import Element
 import Element.Background as Background
@@ -301,7 +234,7 @@ svg xs ys _ =
 
 attr : String -> String -> Attr r a
 attr k v =
-    [ A0 (Element.htmlAttribute (Html.Attributes.attribute k v)) ]
+    attr_ (Html.Attributes.attribute k v)
 
 
 attr_ : Html.Attribute a -> Attr r a
