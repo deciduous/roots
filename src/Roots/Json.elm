@@ -10,6 +10,7 @@ module Roots.Json exposing
     , object2
     , object4
     , object5
+    , object6
     , object8
     , objectVariantCodec
     , string
@@ -193,6 +194,42 @@ object5 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd 
                             , ( kc, cc.encoder c )
                             , ( kd, cd.encoder d )
                             , ( ke, ce.encoder e )
+                            ]
+        }
+
+
+object6 :
+    (a -> b -> c -> d -> e -> f -> g)
+    -> (g -> T6 a b c d e f)
+    -> ( String, Codec a )
+    -> ( String, Codec b )
+    -> ( String, Codec c )
+    -> ( String, Codec d )
+    -> ( String, Codec e )
+    -> ( String, Codec f )
+    -> Codec g
+object6 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) =
+    Codec
+        { decoder =
+            Json.Decode.map6
+                f0
+                (Json.Decode.field ka ca.decoder)
+                (Json.Decode.field kb cb.decoder)
+                (Json.Decode.field kc cc.decoder)
+                (Json.Decode.field kd cd.decoder)
+                (Json.Decode.field ke ce.decoder)
+                (Json.Decode.field kf cf.decoder)
+        , encoder =
+            \g ->
+                case f1 g of
+                    T6 a b c d e f ->
+                        Json.Encode.object
+                            [ ( ka, ca.encoder a )
+                            , ( kb, cb.encoder b )
+                            , ( kc, cc.encoder c )
+                            , ( kd, cd.encoder d )
+                            , ( ke, ce.encoder e )
+                            , ( kf, cf.encoder f )
                             ]
         }
 

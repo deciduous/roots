@@ -1,9 +1,16 @@
 module Roots.Array exposing
-    ( intersperse
+    ( cons
+    , intersperse
     , member
+    , singleton
     )
 
 import Array exposing (Array)
+
+
+cons : a -> Array a -> Array a
+cons x =
+    Array.append (singleton x)
 
 
 intersperse : a -> Array a -> Array a
@@ -27,3 +34,8 @@ member x xs =
                         loop (i + 1)
     in
     loop 0
+
+
+singleton : a -> Array a
+singleton x =
+    Array.initialize 1 (\_ -> x)

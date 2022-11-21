@@ -1,5 +1,6 @@
 module Roots exposing
     ( Array
+    , ArrayZipper
     , Dict
     , Prism
     , Set
@@ -16,12 +17,17 @@ module Roots exposing
 
 import Array
 import Dict
+import Roots.ArrayZipper as ArrayZipper
 import Roots.Prism as Prism
 import Set
 
 
 type alias Array a =
     Array.Array a
+
+
+type alias ArrayZipper a =
+    ArrayZipper.ArrayZipper a
 
 
 type alias Dict k v =
