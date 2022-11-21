@@ -7,6 +7,9 @@ module Roots.ArrayZipper exposing
     , fromArray
     , fromList
     , index
+    , length
+    , lengthLeft
+    , lengthRight
     , toArray
     , toList
     )
@@ -37,6 +40,21 @@ index (ArrayZipper { index_ }) =
 focus : ArrayZipper a -> Maybe a
 focus (ArrayZipper { array, index_ }) =
     Array.get index_ array
+
+
+length : ArrayZipper a -> Int
+length (ArrayZipper { array }) =
+    Array.length array
+
+
+lengthLeft : ArrayZipper a -> Int
+lengthLeft =
+    index
+
+
+lengthRight : ArrayZipper a -> Int
+lengthRight (ArrayZipper { array, index_ }) =
+    max (Array.length array - index_ - 1) 0
 
 
 cycleRight : ArrayZipper a -> ArrayZipper a
