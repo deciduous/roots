@@ -1,5 +1,6 @@
 module Roots.ArrayZipper exposing
     ( ArrayZipper
+    , cycleRight
     , empty
     , focus
     , focusOn
@@ -36,6 +37,19 @@ index (ArrayZipper { index_ }) =
 focus : ArrayZipper a -> Maybe a
 focus (ArrayZipper { array, index_ }) =
     Array.get index_ array
+
+
+cycleRight : ArrayZipper a -> ArrayZipper a
+cycleRight (ArrayZipper { array, index_ }) =
+    let
+        i =
+            index_ + 1
+    in
+    if i < Array.length array then
+        ArrayZipper { array = array, index_ = i }
+
+    else
+        ArrayZipper { array = array, index_ = 0 }
 
 
 focusOn : Int -> ArrayZipper a -> ArrayZipper a
