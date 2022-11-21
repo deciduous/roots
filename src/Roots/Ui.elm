@@ -234,9 +234,16 @@ pluckParagraphSpacing =
     loop
 
 
-link : List (Attr r a) -> { label : String, url : String } -> El r a
-link attrs { label, url } r =
-    Element.link (toAttrs r attrs) { label = Element.text label, url = url }
+link : List (Attr r a) -> { label : String, newTab : Bool, url : String } -> El r a
+link attrs { label, newTab, url } r =
+    (if newTab then
+        Element.newTabLink
+
+     else
+        Element.link
+    )
+        (toAttrs r attrs)
+        { label = Element.text label, url = url }
 
 
 svg : List (Html.Attribute a) -> List (Svg a) -> El r a
