@@ -6,6 +6,7 @@ module Roots.List exposing
     , findFirst
     , indexed
     , isSingleton
+    , mapAndReverse
     , mapMaybe
     , modify
     , modifyFirst
@@ -89,6 +90,11 @@ isSingleton xs =
 
         _ ->
             False
+
+
+mapAndReverse : (a -> b) -> List a -> List b
+mapAndReverse f =
+    List.foldl (\x -> (::) (f x)) []
 
 
 mapMaybe : (a -> Maybe b) -> List a -> List b
