@@ -2,18 +2,27 @@ module Roots.Json exposing
     ( Codec
     , Decoder
     , Value
+    , VariantCodec
     , array
-    , encode
     , int
     , list
+    , object0
     , object2
     , object8
+    , objectVariantCodec
     , string
+    , toDecoder
+    , toString
+    , toValue
+    , tuple2
+    , variant3
     )
 
+import Array
 import Json.Decode
 import Json.Encode
-import Roots exposing (Array, T8(..))
+import Roots exposing (..)
+import Roots.Prism as Prism exposing (Prism)
 
 
 type alias Decoder a =
@@ -24,9 +33,19 @@ type alias Value =
     Json.Encode.Value
 
 
-encode : Value -> String
-encode =
-    Json.Encode.encode 0
+toDecoder : Codec a -> Decoder a
+toDecoder (Codec codec) =
+    codec.decoder
+
+
+toString : Codec a -> a -> String
+toString (Codec codec) val =
+    Json.Encode.encode 0 (codec.encoder val)
+
+
+toValue : Codec a -> a -> Value
+toValue (Codec codec) =
+    codec.encoder
 
 
 type Codec a
@@ -65,6 +84,37 @@ list (Codec codec) =
     Codec
         { decoder = Json.Decode.list codec.decoder
         , encoder = Json.Encode.list codec.encoder
+        }
+
+
+tuple2 : Codec a -> Codec b -> Codec ( a, b )
+tuple2 (Codec ca) (Codec cb) =
+    Codec
+        { decoder =
+            Json.Decode.map2 (\a b -> ( a, b ))
+                (Json.Decode.index 0 ca.decoder)
+                (Json.Decode.index 1 cb.decoder)
+        , encoder =
+            \( a, b ) ->
+                Json.Encode.array
+                    identity
+                    (Array.initialize 2
+                        (\i ->
+                            if i == 0 then
+                                ca.encoder a
+
+                            else
+                                cb.encoder b
+                        )
+                    )
+        }
+
+
+object0 : Codec ()
+object0 =
+    Codec
+        { decoder = Json.Decode.succeed ()
+        , encoder = \_ -> Json.Encode.object []
         }
 
 
@@ -121,4 +171,81 @@ object8 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd 
                             , ( kg, cg.encoder g )
                             , ( kh, ch.encoder h )
                             ]
+        }
+
+
+type alias VariantCodec t a =
+    { typeCodec : Codec t
+    , valueDecoder : Decoder a -> Decoder a
+    , encoder : t -> Value -> Value
+    }
+
+
+{-| A two-key object codec.
+-}
+objectVariantCodec : String -> String -> Codec t -> VariantCodec t a
+objectVariantCodec typeKey valueKey (Codec typeCodec) =
+    { typeCodec = Codec typeCodec
+    , valueDecoder = Json.Decode.field valueKey
+    , encoder =
+        \typ value ->
+            Json.Encode.object
+                [ ( typeKey, typeCodec.encoder typ )
+                , ( valueKey, value )
+                ]
+    }
+
+
+{-| An attempt at a nicer variant-encoding function than 'custom'.
+-}
+variant3 :
+    VariantCodec t d
+    -> ( t, Prism d a, Codec a )
+    -> ( t, Prism d b, Codec b )
+    -> ( t, Prism d c, Codec c )
+    -> (t -> String)
+    -> Codec d
+variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) oink =
+    Codec
+        { decoder =
+            variantCodec.typeCodec
+                |> toDecoder
+                |> Json.Decode.andThen
+                    (\typ ->
+                        variantCodec.valueDecoder
+                            (if typ == t0 then
+                                Json.Decode.map (Prism.review p0) c0.decoder
+
+                             else if typ == t1 then
+                                Json.Decode.map (Prism.review p1) c1.decoder
+
+                             else if typ == t2 then
+                                Json.Decode.map (Prism.review p2) c2.decoder
+
+                             else
+                                Json.Decode.fail (oink typ)
+                            )
+                    )
+        , encoder =
+            \value ->
+                case Prism.preview p0 value of
+                    Just inner ->
+                        variantCodec.encoder t0 (c0.encoder inner)
+
+                    Nothing ->
+                        case Prism.preview p1 value of
+                            Just inner ->
+                                variantCodec.encoder t1 (c1.encoder inner)
+
+                            Nothing ->
+                                case Prism.preview p2 value of
+                                    Just inner ->
+                                        variantCodec.encoder t2 (c2.encoder inner)
+
+                                    Nothing ->
+                                        -- This case is impossible for correctly written client code, for which
+                                        -- we'll always have *some* constructor comparison return Just. But if the
+                                        -- client erroneously doesn't tell us how to encode a value with the given
+                                        -- tag, I guess just give back a null.
+                                        Json.Encode.null
         }

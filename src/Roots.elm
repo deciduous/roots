@@ -1,6 +1,7 @@
 module Roots exposing
     ( Array
     , Dict
+    , Prism
     , Set
     , T4(..)
     , T5(..)
@@ -15,6 +16,7 @@ module Roots exposing
 
 import Array
 import Dict
+import Roots.Prism as Prism
 import Set
 
 
@@ -24,6 +26,10 @@ type alias Array a =
 
 type alias Dict k v =
     Dict.Dict k v
+
+
+type alias Prism s a =
+    Prism.Prism s a
 
 
 type alias Set a =
