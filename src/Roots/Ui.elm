@@ -1,4 +1,4 @@
-module Ui exposing
+module Roots.Ui exposing
     ( Attr
     , Color
     , El
