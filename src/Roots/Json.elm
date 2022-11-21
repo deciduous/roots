@@ -206,7 +206,7 @@ object8 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd 
 
 
 type alias VariantCodec t a =
-    { typeCodec : Codec t
+    { typeDecoder : Decoder t
     , valueDecoder : Decoder a -> Decoder a
     , encoder : t -> Value -> Value
     }
@@ -216,7 +216,7 @@ type alias VariantCodec t a =
 -}
 objectVariantCodec : String -> String -> Codec t -> VariantCodec t a
 objectVariantCodec typeKey valueKey (Codec typeCodec) =
-    { typeCodec = Codec typeCodec
+    { typeDecoder = Json.Decode.field typeKey typeCodec.decoder
     , valueDecoder = Json.Decode.field valueKey
     , encoder =
         \typ value ->
@@ -239,8 +239,7 @@ variant3 :
 variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) oink =
     Codec
         { decoder =
-            variantCodec.typeCodec
-                |> toDecoder
+            variantCodec.typeDecoder
                 |> Json.Decode.andThen
                     (\typ ->
                         variantCodec.valueDecoder
