@@ -1,6 +1,7 @@
 module Roots.Array exposing
     ( cons
     , intersperse
+    , last
     , member
     , singleton
     )
@@ -16,6 +17,11 @@ cons x =
 intersperse : a -> Array a -> Array a
 intersperse x xs =
     Array.fromList (List.intersperse x (Array.toList xs))
+
+
+last : Array a -> Maybe a
+last xs =
+    Array.get (Array.length xs - 1) xs
 
 
 member : a -> Array a -> Bool
