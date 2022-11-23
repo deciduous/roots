@@ -21,6 +21,7 @@ module Roots.Json exposing
     , toString
     , toValue
     , tuple2
+    , variant2
     , variant3
     )
 
@@ -366,8 +367,45 @@ objectVariantCodec typeKey valueKey (Codec typeCodec) =
     }
 
 
-{-| An attempt at a nicer variant-encoding function than 'custom'.
--}
+variant2 :
+    VariantCodec t c
+    -> ( t, Prism c a, Codec a )
+    -> ( t, Prism c b, Codec b )
+    -> (t -> String)
+    -> Codec c
+variant2 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) unrecognized =
+    Codec
+        { decoder =
+            variantCodec.typeDecoder
+                |> Json.Decode.andThen
+                    (\typ ->
+                        variantCodec.valueDecoder
+                            (if typ == t0 then
+                                Json.Decode.map (Prism.review p0) c0.decoder
+
+                             else if typ == t1 then
+                                Json.Decode.map (Prism.review p1) c1.decoder
+
+                             else
+                                Json.Decode.fail (unrecognized typ)
+                            )
+                    )
+        , encoder =
+            \value ->
+                case Prism.preview p0 value of
+                    Just inner ->
+                        variantCodec.encoder t0 (c0.encoder inner)
+
+                    Nothing ->
+                        case Prism.preview p1 value of
+                            Just inner ->
+                                variantCodec.encoder t1 (c1.encoder inner)
+
+                            Nothing ->
+                                Json.Encode.null
+        }
+
+
 variant3 :
     VariantCodec t d
     -> ( t, Prism d a, Codec a )
@@ -375,7 +413,7 @@ variant3 :
     -> ( t, Prism d c, Codec c )
     -> (t -> String)
     -> Codec d
-variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) oink =
+variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) unrecognized =
     Codec
         { decoder =
             variantCodec.typeDecoder
@@ -392,7 +430,7 @@ variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec 
                                 Json.Decode.map (Prism.review p2) c2.decoder
 
                              else
-                                Json.Decode.fail (oink typ)
+                                Json.Decode.fail (unrecognized typ)
                             )
                     )
         , encoder =
@@ -412,9 +450,5 @@ variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec 
                                         variantCodec.encoder t2 (c2.encoder inner)
 
                                     Nothing ->
-                                        -- This case is impossible for correctly written client code, for which
-                                        -- we'll always have *some* constructor comparison return Just. But if the
-                                        -- client erroneously doesn't tell us how to encode a value with the given
-                                        -- tag, I guess just give back a null.
                                         Json.Encode.null
         }
