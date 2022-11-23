@@ -1,5 +1,6 @@
 module Roots.ArrayZipper exposing
     ( ArrayZipper
+    , cycleLeft
     , cycleRight
     , empty
     , focus
@@ -55,6 +56,19 @@ lengthLeft =
 lengthRight : ArrayZipper a -> Int
 lengthRight (ArrayZipper { array, index_ }) =
     max (Array.length array - index_ - 1) 0
+
+
+cycleLeft : ArrayZipper a -> ArrayZipper a
+cycleLeft (ArrayZipper zipper) =
+    if zipper.index_ == 0 then
+        if Array.length zipper.array == 0 then
+            ArrayZipper zipper
+
+        else
+            ArrayZipper { zipper | index_ = Array.length zipper.array - 1 }
+
+    else
+        ArrayZipper { zipper | index_ = zipper.index_ - 1 }
 
 
 cycleRight : ArrayZipper a -> ArrayZipper a

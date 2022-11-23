@@ -4,6 +4,8 @@ module Roots exposing
     , Dict
     , Prism
     , Set
+    , T10(..)
+    , T11(..)
     , T4(..)
     , T5(..)
     , T6(..)
@@ -64,6 +66,14 @@ type T8 a b c d e f g h
 
 type T9 a b c d e f g h i
     = T9 a b c d e f g h i
+
+
+type T10 a b c d e f g h i j
+    = T10 a b c d e f g h i j
+
+
+type T11 a b c d e f g h i j k
+    = T11 a b c d e f g h i j k
 
 
 ifte : Bool -> a -> a -> a

@@ -1,12 +1,15 @@
 module Roots.Json exposing
     ( Codec
     , Decoder
+    , Error
     , Value
     , VariantCodec
     , array
+    , float
     , int
     , list
     , object0
+    , object11
     , object2
     , object4
     , object5
@@ -30,6 +33,10 @@ import Roots.Prism as Prism exposing (Prism)
 
 type alias Decoder a =
     Json.Decode.Decoder a
+
+
+type alias Error =
+    Json.Decode.Error
 
 
 type alias Value =
@@ -63,6 +70,14 @@ int =
     Codec
         { decoder = Json.Decode.int
         , encoder = Json.Encode.int
+        }
+
+
+float : Codec Float
+float =
+    Codec
+        { decoder = Json.Decode.float
+        , encoder = Json.Encode.float
         }
 
 
@@ -272,6 +287,59 @@ object8 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd 
                             , ( kf, cf.encoder f )
                             , ( kg, cg.encoder g )
                             , ( kh, ch.encoder h )
+                            ]
+        }
+
+
+object11 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> l)
+    -> (l -> T11 a b c d e f g h i j k)
+    -> ( String, Codec a )
+    -> ( String, Codec b )
+    -> ( String, Codec c )
+    -> ( String, Codec d )
+    -> ( String, Codec e )
+    -> ( String, Codec f )
+    -> ( String, Codec g )
+    -> ( String, Codec h )
+    -> ( String, Codec i )
+    -> ( String, Codec j )
+    -> ( String, Codec k )
+    -> Codec l
+object11 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) ( kg, Codec cg ) ( kh, Codec ch ) ( ki, Codec ci ) ( kj, Codec cj ) ( kk, Codec ck ) =
+    Codec
+        { decoder =
+            Json.Decode.map8
+                (\a b c d e f g (T4 h i j k) -> f0 a b c d e f g h i j k)
+                (Json.Decode.field ka ca.decoder)
+                (Json.Decode.field kb cb.decoder)
+                (Json.Decode.field kc cc.decoder)
+                (Json.Decode.field kd cd.decoder)
+                (Json.Decode.field ke ce.decoder)
+                (Json.Decode.field kf cf.decoder)
+                (Json.Decode.field kg cg.decoder)
+                (Json.Decode.map4 T4
+                    (Json.Decode.field kh ch.decoder)
+                    (Json.Decode.field ki ci.decoder)
+                    (Json.Decode.field kj cj.decoder)
+                    (Json.Decode.field kk ck.decoder)
+                )
+        , encoder =
+            \l ->
+                case f1 l of
+                    T11 a b c d e f g h i j k ->
+                        Json.Encode.object
+                            [ ( ka, ca.encoder a )
+                            , ( kb, cb.encoder b )
+                            , ( kc, cc.encoder c )
+                            , ( kd, cd.encoder d )
+                            , ( ke, ce.encoder e )
+                            , ( kf, cf.encoder f )
+                            , ( kg, cg.encoder g )
+                            , ( kh, ch.encoder h )
+                            , ( ki, ci.encoder i )
+                            , ( kj, cj.encoder j )
+                            , ( kk, ck.encoder k )
                             ]
         }
 

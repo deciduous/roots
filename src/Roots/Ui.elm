@@ -2,7 +2,8 @@ module Roots.Ui exposing
     ( none, text, paragraph, paragraphs, link, svg
     , el, col, row, attrEnv
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
-    , Attr, Color, El, Font, Option, Svg, attr, attrIf, attrWhen, autocomplete, background, bold, border, border4, cursorText, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, height, id, image, italic, lazy, lazy2, lazy3, lazy4, lineHeight, maxHeight, maxWidth, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, padding, padding4, pointer, rgb, roundedCorners, sansSerif, serif, size, spacing, strikethrough, toHtml, typeface, underline, unselectable, width
+    , height, maxHeight, width, maxWidth, padding, padding4, spacing
+    , Attr, Color, El, Font, Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, autocomplete, background, bold, border, border4, cursorText, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, id, image, italic, lazy, lazy2, lazy3, lazy4, lineHeight, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, pointer, rgb, roundedCorners, sansSerif, serif, size, strikethrough, toHtml, typeface, underline, unselectable
     )
 
 {-|
@@ -22,8 +23,14 @@ module Roots.Ui exposing
 
 @docs above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
 
+
+# Sizing / padding / spacing
+
+@docs height, maxHeight, width, maxWidth, padding, padding4, spacing
+
 -}
 
+import Array exposing (Array)
 import Element
 import Element.Background as Background
 import Element.Border as Border
@@ -34,6 +41,8 @@ import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Json.Decode
+import Roots exposing (T11(..), T4(..))
+import Roots.Json as Json
 import Svg
 
 
@@ -517,7 +526,7 @@ autocomplete b =
 
 cursorText : Attr r a
 cursorText =
-    [ A0 (Element.htmlAttribute (Html.Attributes.style "cursor" "text")) ]
+    attr_ (Html.Attributes.style "cursor" "text")
 
 
 id : String -> Attr r a
@@ -532,7 +541,7 @@ pointer =
 
 unselectable : Attr r a
 unselectable =
-    [ A0 (Element.htmlAttribute (Html.Attributes.style "user-select" "none")) ]
+    attr_ (Html.Attributes.style "user-select" "none")
 
 
 
@@ -551,68 +560,205 @@ image attrs img r =
 
 
 onClick : a -> Attr r a
-onClick x =
-    [ A0 (Events.onClick x) ]
+onClick message =
+    [ A0 (Events.onClick message) ]
 
 
 onDoubleClick : a -> Attr r a
-onDoubleClick x =
-    [ A0 (Events.onDoubleClick x) ]
-
-
-onMouseDown : a -> Attr r a
-onMouseDown x =
-    [ A0 (Events.onMouseDown x) ]
-
-
-onFocus : a -> Attr r a
-onFocus x =
-    [ A0 (Events.onFocus x) ]
-
-
-onLoseFocus : a -> Attr r a
-onLoseFocus x =
-    [ A0 (Events.onLoseFocus x) ]
-
-
-onMouseUp : a -> Attr r a
-onMouseUp x =
-    [ A0 (Events.onMouseUp x) ]
-
-
-onMouseEnter : a -> Attr r a
-onMouseEnter x =
-    [ A0 (Events.onMouseEnter x) ]
-
-
-onMouseLeave : a -> Attr r a
-onMouseLeave x =
-    [ A0 (Events.onMouseLeave x) ]
-
-
-onMouseMove : a -> Attr r a
-onMouseMove x =
-    [ A0 (Events.onMouseMove x) ]
+onDoubleClick message =
+    [ A0 (Events.onDoubleClick message) ]
 
 
 onEnter : a -> Attr r a
-onEnter x =
-    [ A0
-        (Element.htmlAttribute
-            (Html.Events.on "keyup"
-                (Json.Decode.field "key" Json.Decode.string
-                    |> Json.Decode.andThen
-                        (\key ->
-                            if key == "Enter" then
-                                Json.Decode.succeed x
+onEnter message =
+    on "keyup"
+        (Json.Decode.field "key" Json.Decode.string
+            |> Json.Decode.andThen
+                (\key ->
+                    if key == "Enter" then
+                        Json.Decode.succeed message
 
-                            else
-                                Json.Decode.fail ""
-                        )
+                    else
+                        Json.Decode.fail ""
                 )
-            )
         )
-    ]
+
+
+onFocus : a -> Attr r a
+onFocus message =
+    [ A0 (Events.onFocus message) ]
+
+
+onLoseFocus : a -> Attr r a
+onLoseFocus message =
+    [ A0 (Events.onLoseFocus message) ]
+
+
+onMouseDown : a -> Attr r a
+onMouseDown message =
+    [ A0 (Events.onMouseDown message) ]
+
+
+onMouseEnter : a -> Attr r a
+onMouseEnter message =
+    [ A0 (Events.onMouseEnter message) ]
+
+
+onMouseLeave : a -> Attr r a
+onMouseLeave message =
+    [ A0 (Events.onMouseLeave message) ]
+
+
+onMouseMove : a -> Attr r a
+onMouseMove message =
+    [ A0 (Events.onMouseMove message) ]
+
+
+onMouseUp : a -> Attr r a
+onMouseUp message =
+    [ A0 (Events.onMouseUp message) ]
+
+
+{-| <https://developer.mozilla.org/en-US/docs/Web/API/Touch>
+-}
+type alias Touch =
+    { clientX : Float
+    , clientY : Float
+    , force : Float
+    , identifier : Int
+    , pageX : Float
+    , pageY : Float
+    , radiusX : Float
+    , radiusY : Float
+    , rotationAngle : Float
+    , screenX : Int
+    , screenY : Int
+    }
+
+
+touchDecoder : Json.Decoder Touch
+touchDecoder =
+    let
+        fromTuple clientX clientY force identifier pageX pageY radiusX radiusY rotationAngle screenX screenY =
+            { clientX = clientX
+            , clientY = clientY
+            , force = force
+            , identifier = identifier
+            , pageX = pageX
+            , pageY = pageY
+            , radiusX = radiusX
+            , radiusY = radiusY
+            , rotationAngle = rotationAngle
+            , screenX = screenX
+            , screenY = screenY
+            }
+
+        toTuple x =
+            T11
+                x.clientX
+                x.clientY
+                x.force
+                x.identifier
+                x.pageX
+                x.pageY
+                x.radiusX
+                x.radiusY
+                x.rotationAngle
+                x.screenX
+                x.screenY
+    in
+    Json.toDecoder
+        (Json.object11
+            fromTuple
+            toTuple
+            ( "clientX", Json.float )
+            ( "clientY", Json.float )
+            ( "force", Json.float )
+            ( "identifier", Json.int )
+            ( "pageX", Json.float )
+            ( "pageY", Json.float )
+            ( "radiusX", Json.float )
+            ( "radiusY", Json.float )
+            ( "rotationAngle", Json.float )
+            ( "screenX", Json.int )
+            ( "screenY", Json.int )
+        )
+
+
+touchListDecoder : Json.Decoder (Array Touch)
+touchListDecoder =
+    Json.Decode.field "length" Json.Decode.int
+        |> Json.Decode.andThen
+            (\length ->
+                let
+                    loop : Array Touch -> Int -> Json.Decoder (Array Touch)
+                    loop acc i =
+                        if i == length then
+                            Json.Decode.succeed acc
+
+                        else
+                            Json.Decode.field (String.fromInt i) touchDecoder
+                                |> Json.Decode.andThen (\touch -> loop (Array.push touch acc) (i + 1))
+                in
+                loop Array.empty 0
+            )
+
+
+{-| <https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent>
+-}
+type alias TouchEvent =
+    { changedTouches : Array Touch
+    , ctrlKey : Bool
+    , metaKey : Bool
+    , shiftKey : Bool
+    , targetTouches : Array Touch
+    , touches : Array Touch
+    }
+
+
+touchEventDecoder : Json.Decoder TouchEvent
+touchEventDecoder =
+    Json.Decode.map6
+        (\changedTouches ctrlKey metaKey shiftKey targetTouches touches ->
+            { changedTouches = changedTouches
+            , ctrlKey = ctrlKey
+            , metaKey = metaKey
+            , shiftKey = shiftKey
+            , targetTouches = targetTouches
+            , touches = touches
+            }
+        )
+        (Json.Decode.field "changedTouches" touchListDecoder)
+        (Json.Decode.field "ctrlKey" Json.Decode.bool)
+        (Json.Decode.field "metaKey" Json.Decode.bool)
+        (Json.Decode.field "shiftKey" Json.Decode.bool)
+        (Json.Decode.field "targetTouches" touchListDecoder)
+        (Json.Decode.field "touches" touchListDecoder)
+
+
+onTouchCancel : (TouchEvent -> a) -> Attr r a
+onTouchCancel toMessage =
+    on "touchcancel" (Json.Decode.map toMessage touchEventDecoder)
+
+
+onTouchEnd : (TouchEvent -> a) -> Attr r a
+onTouchEnd toMessage =
+    on "touchend" (Json.Decode.map toMessage touchEventDecoder)
+
+
+onTouchMove : (TouchEvent -> a) -> Attr r a
+onTouchMove toMessage =
+    on "touchmove" (Json.Decode.map toMessage touchEventDecoder)
+
+
+onTouchStart : (TouchEvent -> a) -> Attr r a
+onTouchStart toMessage =
+    on "touchstart" (Json.Decode.map toMessage touchEventDecoder)
+
+
+on : String -> Json.Decoder a -> Attr r a
+on event decoder =
+    attr_ (Html.Events.on event decoder)
 
 
 
