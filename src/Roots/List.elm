@@ -11,6 +11,7 @@ module Roots.List exposing
     , modify
     , modifyFirst
     , modifyFirst_
+    , overLast
     , splitAt
     , uncons
     , unsnoc
@@ -185,6 +186,19 @@ modifyFirst_ f xs0 =
 
                 Just (Keep y) ->
                     y :: xs
+
+
+overLast : (a -> a) -> List a -> List a
+overLast f xs0 =
+    case xs0 of
+        [] ->
+            []
+
+        [ x ] ->
+            [ f x ]
+
+        x :: xs ->
+            x :: overLast f xs
 
 
 splitAt : Int -> List a -> ( List a, List a )

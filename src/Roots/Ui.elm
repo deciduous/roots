@@ -1,6 +1,6 @@
 module Roots.Ui exposing
     ( none, text, paragraph, paragraphs, link, svg
-    , el, col, row, attrEnv
+    , el, col, row, elEnv, attrEnv
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, width, maxWidth, padding, padding4, spacing
     , Attr, Color, El, Font, Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, autocomplete, background, bold, border, border4, cursorText, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, id, image, italic, lazy, lazy2, lazy3, lazy4, lineHeight, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, pointer, rgb, roundedCorners, sansSerif, serif, size, strikethrough, toHtml, typeface, underline, unselectable
@@ -16,7 +16,7 @@ module Roots.Ui exposing
 
 # Container elements
 
-@docs el, col, row, attrEnv
+@docs el, col, row, elEnv, attrEnv
 
 
 # Positioning
@@ -288,6 +288,11 @@ col attrs es r =
 row : List (Attr r a) -> List (El r a) -> El r a
 row attrs es r =
     Element.row (toAttrs r attrs) (toElems r es)
+
+
+elEnv : (r -> El r a) -> El r a
+elEnv f r =
+    f r r
 
 
 attrEnv : (r -> Attr r a) -> Attr r a
