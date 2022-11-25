@@ -5,6 +5,7 @@ module Roots.Json exposing
     , Value
     , VariantCodec
     , array
+    , bool
     , float
     , int
     , list
@@ -15,6 +16,7 @@ module Roots.Json exposing
     , object5
     , object6
     , object8
+    , object9
     , objectVariantCodec
     , string
     , toDecoder
@@ -63,6 +65,14 @@ type Codec a
     = Codec
         { decoder : Decoder a
         , encoder : a -> Value
+        }
+
+
+bool : Codec Bool
+bool =
+    Codec
+        { decoder = Json.Decode.bool
+        , encoder = Json.Encode.bool
         }
 
 
@@ -288,6 +298,54 @@ object8 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd 
                             , ( kf, cf.encoder f )
                             , ( kg, cg.encoder g )
                             , ( kh, ch.encoder h )
+                            ]
+        }
+
+
+object9 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j)
+    -> (j -> T9 a b c d e f g h i)
+    -> ( String, Codec a )
+    -> ( String, Codec b )
+    -> ( String, Codec c )
+    -> ( String, Codec d )
+    -> ( String, Codec e )
+    -> ( String, Codec f )
+    -> ( String, Codec g )
+    -> ( String, Codec h )
+    -> ( String, Codec i )
+    -> Codec j
+object9 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) ( kg, Codec cg ) ( kh, Codec ch ) ( ki, Codec ci ) =
+    Codec
+        { decoder =
+            Json.Decode.map8
+                (\a b c d e f g ( h, i ) -> f0 a b c d e f g h i)
+                (Json.Decode.field ka ca.decoder)
+                (Json.Decode.field kb cb.decoder)
+                (Json.Decode.field kc cc.decoder)
+                (Json.Decode.field kd cd.decoder)
+                (Json.Decode.field ke ce.decoder)
+                (Json.Decode.field kf cf.decoder)
+                (Json.Decode.field kg cg.decoder)
+                (Json.Decode.map2
+                    (\h i -> ( h, i ))
+                    (Json.Decode.field kh ch.decoder)
+                    (Json.Decode.field ki ci.decoder)
+                )
+        , encoder =
+            \j ->
+                case f1 j of
+                    T9 a b c d e f g h i ->
+                        Json.Encode.object
+                            [ ( ka, ca.encoder a )
+                            , ( kb, cb.encoder b )
+                            , ( kc, cc.encoder c )
+                            , ( kd, cd.encoder d )
+                            , ( ke, ce.encoder e )
+                            , ( kf, cf.encoder f )
+                            , ( kg, cg.encoder g )
+                            , ( kh, ch.encoder h )
+                            , ( ki, ci.encoder i )
                             ]
         }
 
