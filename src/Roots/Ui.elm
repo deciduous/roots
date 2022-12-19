@@ -1,5 +1,5 @@
 module Roots.Ui exposing
-    ( none, text, paragraph, paragraphs, link, svg, br
+    ( none, text, paragraph, link, svg, br
     , el, col, row, elEnv, attrEnv
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, width, maxWidth, padding, padding4, spacing
@@ -154,39 +154,6 @@ paragraph attrs0 es r =
                     A0 (Element.spacing (lh - s)) :: attrs1
     in
     Element.paragraph (List.concatMap (toAttrs_ r) attrs2) (toElems r es)
-
-
-paragraphs : List (Attr r a) -> List (List (El r a)) -> El r a
-paragraphs attrs0 es r =
-    let
-        attrs1 =
-            List.concat attrs0
-
-        attrs2 =
-            List.concatMap (toAttrs_ r) attrs1
-
-        paragraphSpacing =
-            pluckParagraphSpacing attrs1
-
-        columnAttrs =
-            case paragraphSpacing of
-                Nothing ->
-                    attrs2
-
-                Just ( lh, _ ) ->
-                    Element.spacing lh :: attrs2
-
-        paragraphAttrs =
-            case paragraphSpacing of
-                Nothing ->
-                    []
-
-                Just ( lh, s ) ->
-                    [ Element.spacing (lh - s) ]
-    in
-    Element.column
-        columnAttrs
-        (List.map (\e -> Element.paragraph paragraphAttrs (toElems r e)) es)
 
 
 {-| Try to pluck paragraph spacing (line height, size) out of a list of attributes.
