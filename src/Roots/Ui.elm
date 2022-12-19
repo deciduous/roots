@@ -1,5 +1,5 @@
 module Roots.Ui exposing
-    ( none, text, paragraph, paragraphs, link, svg
+    ( none, text, paragraph, paragraphs, link, svg, br
     , el, col, row, elEnv, attrEnv
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, width, maxWidth, padding, padding4, spacing
@@ -11,7 +11,7 @@ module Roots.Ui exposing
 
 # Basic elements
 
-@docs none, text, paragraph, paragraphs, link, svg
+@docs none, text, paragraph, paragraphs, link, svg, br
 
 
 # Container elements
@@ -258,6 +258,11 @@ link attrs { label, newTab, url } r =
 svg : List (Html.Attribute a) -> List (Svg a) -> El r a
 svg xs ys _ =
     Element.html (Svg.svg xs ys)
+
+
+br : El r a
+br _ =
+    Element.html (Html.br [] [])
 
 
 attr : String -> String -> Attr r a
