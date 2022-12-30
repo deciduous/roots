@@ -3,7 +3,7 @@ module Roots.Ui exposing
     , el, col, row, elEnv, attrEnv
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, width, maxWidth, padding, padding4, spacing
-    , Attr, Color, El, Font, Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, autocomplete, background, bold, border, border4, cursorText, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, id, image, italic, lazy, lazy2, lazy3, lazy4, lineHeight, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, pointer, rgb, roundedCorners, sansSerif, serif, size, strikethrough, toHtml, typeface, underline, unselectable
+    , Attr, Color, El, Font, Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, autocomplete, background, bold, border, border4, cursorText, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, id, image, italic, lazy, lazy2, lazy3, lazy4, lineHeight, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, pointer, rgb, roundedCorners, sansSerif, serif, size, strikethrough, toHex, toHtml, typeface, underline, unselectable
     )
 
 {-|
@@ -56,10 +56,6 @@ type Attr_ r a
     | A2 (r -> Attr r a)
     | LineHeight Int
     | Size Int
-
-
-type alias Color =
-    Element.Color
 
 
 type alias El r a =
@@ -422,7 +418,7 @@ lineHeight px =
 
 fontColor : Color -> Attr r a
 fontColor c =
-    [ A0 (Font.color c) ]
+    [ A0 (Font.color (toColor c)) ]
 
 
 bold : Attr r a
@@ -456,16 +452,16 @@ fontCenter =
 
 
 border : Color -> Int -> Int -> Int -> Int -> Attr r a
-border co a b c d =
-    [ A0 (Border.color co)
+border c p0 p1 p2 p3 =
+    [ A0 (Border.color (toColor c))
     , A0 Border.solid
-    , A0 (Border.widthEach { top = a, right = b, bottom = c, left = d })
+    , A0 (Border.widthEach { top = p0, right = p1, bottom = p2, left = p3 })
     ]
 
 
 border4 : Color -> Int -> Attr r a
 border4 c px =
-    [ A0 (Border.color c)
+    [ A0 (Border.color (toColor c))
     , A0 Border.solid
     , A0 (Border.width px)
     ]
@@ -481,14 +477,95 @@ roundedCorners px =
 -- Color
 
 
+type Color
+    = Color
+        { r : Int
+        , g : Int
+        , b : Int
+        }
+
+
+toColor : Color -> Element.Color
+toColor (Color { r, g, b }) =
+    Element.rgb255 r g b
+
+
 background : Color -> Attr r a
 background c =
-    [ A0 (Background.color c) ]
+    [ A0 (Background.color (toColor c)) ]
 
 
 rgb : Int -> Int -> Int -> Color
-rgb =
-    Element.rgb255
+rgb r g b =
+    Color { r = clamp 0 255 r, g = clamp 0 255 g, b = clamp 0 255 b }
+
+
+{-| Convert a color into a hexadecimal string (without a leading #).
+-}
+toHex : Color -> String
+toHex (Color { r, g, b }) =
+    toHex0 r ++ toHex0 g ++ toHex0 b
+
+
+toHex0 : Int -> String
+toHex0 n =
+    if n < 16 then
+        "0" ++ hexChar n
+
+    else
+        hexChar (n // 16) ++ hexChar (modBy 16 n)
+
+
+hexChar : Int -> String
+hexChar n =
+    case n of
+        0 ->
+            "0"
+
+        1 ->
+            "1"
+
+        2 ->
+            "2"
+
+        3 ->
+            "3"
+
+        4 ->
+            "4"
+
+        5 ->
+            "5"
+
+        6 ->
+            "6"
+
+        7 ->
+            "7"
+
+        8 ->
+            "8"
+
+        9 ->
+            "9"
+
+        10 ->
+            "a"
+
+        11 ->
+            "b"
+
+        12 ->
+            "c"
+
+        13 ->
+            "d"
+
+        14 ->
+            "e"
+
+        _ ->
+            "f"
 
 
 
