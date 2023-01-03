@@ -1,6 +1,7 @@
 module Roots.Ui exposing
     ( none, text, paragraph, link, svg, br
     , el, col, row, elEnv, attrEnv
+    , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, width, maxWidth, padding, padding4, spacing
     , Attr, Color, El, Font, Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, autocomplete, background, bold, border, border4, cursorText, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, id, image, italic, lazy, lazy2, lazy3, lazy4, lineHeight, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, pointer, rgb, roundedCorners, sansSerif, serif, size, strikethrough, toHex, toHtml, typeface, underline, unselectable
@@ -17,6 +18,11 @@ module Roots.Ui exposing
 # Container elements
 
 @docs el, col, row, elEnv, attrEnv
+
+
+# Input elements
+
+@docs checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
 
 
 # Positioning
@@ -36,6 +42,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Element.Input as Input
 import Element.Lazy as Lazy
 import Html exposing (Html)
 import Html.Attributes
@@ -266,6 +273,78 @@ elEnv f r =
 attrEnv : (r -> Attr r a) -> Attr r a
 attrEnv f =
     [ A2 f ]
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Input elements
+
+
+checkbox :
+    List (Attr r a)
+    ->
+        { checked : Bool
+        , icon : Bool -> El r a
+        , label : Label r a
+        , onChange : Bool -> a
+        }
+    -> El r a
+checkbox attrs c r =
+    Input.checkbox
+        (toAttrs r attrs)
+        { checked = c.checked
+        , icon = \b -> c.icon b r
+        , label = c.label r
+        , onChange = c.onChange
+        }
+
+
+textBox :
+    List (Attr r a)
+    ->
+        { label : Label r a
+        , onChange : String -> a
+        , placeholder : Maybe { attrs : List (Attr r a), el : El r a }
+        , text : String
+        }
+    -> El r a
+textBox attrs t r =
+    Input.text
+        (toAttrs r attrs)
+        { label = t.label r
+        , onChange = t.onChange
+        , placeholder = Maybe.map (\p -> Input.placeholder (toAttrs r p.attrs) (p.el r)) t.placeholder
+        , text = t.text
+        }
+
+
+type alias Label r a =
+    r -> Input.Label a
+
+
+labelAbove : List (Attr r a) -> El r a -> Label r a
+labelAbove attrs e r =
+    Input.labelAbove (toAttrs r attrs) (e r)
+
+
+labelBelow : List (Attr r a) -> El r a -> Label r a
+labelBelow attrs e r =
+    Input.labelBelow (toAttrs r attrs) (e r)
+
+
+labelLeft : List (Attr r a) -> El r a -> Label r a
+labelLeft attrs e r =
+    Input.labelLeft (toAttrs r attrs) (e r)
+
+
+labelRight : List (Attr r a) -> El r a -> Label r a
+labelRight attrs e r =
+    Input.labelRight (toAttrs r attrs) (e r)
+
+
+labelHidden : String -> Label r a
+labelHidden s _ =
+    Input.labelHidden s
 
 
 
