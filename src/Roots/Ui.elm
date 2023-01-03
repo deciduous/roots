@@ -4,7 +4,7 @@ module Roots.Ui exposing
     , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, width, maxWidth, padding, padding4, spacing
-    , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter
+    , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
     , Color, Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, autocomplete, background, border, border4, cursorText, elIf, elWhen, focusStyle, id, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, pointer, rgb, roundedCorners, toHex, toHtml, unselectable
     )
 
@@ -54,7 +54,7 @@ import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Json.Decode
-import Roots exposing (T11(..), T4(..))
+import Roots exposing (T11(..), T4(..), ifte)
 import Roots.Json as Json
 import Svg
 
@@ -71,8 +71,9 @@ type Attr_ r a
     | Size Int
 
 
-type alias El r a =
-    r -> Element.Element a
+type El r a
+    = E0 (Element.Element a)
+    | E1 (r -> Element.Element a)
 
 
 type alias Font =
@@ -88,8 +89,8 @@ type alias Svg a =
 
 
 toHtml : List Option -> List (Attr r a) -> El r a -> r -> Html a
-toHtml options attrs elem r =
-    Element.layoutWith { options = options } (toAttrs r attrs) (elem r)
+toHtml options attrs e r =
+    Element.layoutWith { options = options } (toAttrs r attrs) (toElem r e)
 
 
 toAttrs : r -> List (Attr r a) -> List (Element.Attribute a)
@@ -123,9 +124,19 @@ toAttrs_ r a0 =
             [ Font.size px ]
 
 
+toElem : r -> El r a -> Element.Element a
+toElem r e0 =
+    case e0 of
+        E0 e ->
+            e
+
+        E1 e ->
+            e r
+
+
 toElems : r -> List (El r a) -> List (Element.Element a)
-toElems r es =
-    List.map (\e -> e r) es
+toElems r =
+    List.map (toElem r)
 
 
 focusStyle : Element.FocusStyle -> Option
@@ -139,17 +150,17 @@ focusStyle =
 
 
 none : El r a
-none _ =
-    Element.none
+none =
+    E0 Element.none
 
 
 text : List (Attr r a) -> String -> El r a
-text attrs s r =
-    Element.el (toAttrs r attrs) (Element.text s)
+text attrs s =
+    E1 (\r -> Element.el (toAttrs r attrs) (Element.text s))
 
 
 paragraph : List (Attr r a) -> List (El r a) -> El r a
-paragraph attrs0 es r =
+paragraph attrs0 es =
     let
         attrs1 =
             List.concat attrs0
@@ -162,7 +173,7 @@ paragraph attrs0 es r =
                 Just ( lh, s ) ->
                     A0 (Element.spacing (lh - s)) :: attrs1
     in
-    Element.paragraph (List.concatMap (toAttrs_ r) attrs2) (toElems r es)
+    E1 (\r -> Element.paragraph (List.concatMap (toAttrs_ r) attrs2) (toElems r es))
 
 
 {-| Try to pluck paragraph spacing (line height, size) out of a list of attributes.
@@ -220,25 +231,26 @@ pluckParagraphSpacing =
 
 
 link : List (Attr r a) -> { label : El r a, newTab : Bool, url : String } -> El r a
-link attrs { label, newTab, url } r =
-    (if newTab then
-        Element.newTabLink
-
-     else
-        Element.link
-    )
-        (toAttrs r attrs)
-        { label = label r, url = url }
+link attrs { label, newTab, url } =
+    E1
+        (\r ->
+            ifte
+                newTab
+                Element.newTabLink
+                Element.link
+                (toAttrs r attrs)
+                { label = toElem r label, url = url }
+        )
 
 
 svg : List (Html.Attribute a) -> List (Svg a) -> El r a
-svg xs ys _ =
-    Element.html (Svg.svg xs ys)
+svg xs ys =
+    E0 (Element.html (Svg.svg xs ys))
 
 
 br : El r a
-br _ =
-    Element.html (Html.br [] [])
+br =
+    E0 (Element.html (Html.br [] []))
 
 
 attr : String -> String -> Attr r a
@@ -257,23 +269,23 @@ attr_ x =
 
 
 el : List (Attr r a) -> El r a -> El r a
-el attrs e r =
-    Element.el (toAttrs r attrs) (e r)
+el attrs e =
+    E1 (\r -> Element.el (toAttrs r attrs) (toElem r e))
 
 
 col : List (Attr r a) -> List (El r a) -> El r a
-col attrs es r =
-    Element.column (toAttrs r attrs) (toElems r es)
+col attrs es =
+    E1 (\r -> Element.column (toAttrs r attrs) (toElems r es))
 
 
 row : List (Attr r a) -> List (El r a) -> El r a
-row attrs es r =
-    Element.row (toAttrs r attrs) (toElems r es)
+row attrs es =
+    E1 (\r -> Element.row (toAttrs r attrs) (toElems r es))
 
 
 elEnv : (r -> El r a) -> El r a
-elEnv f r =
-    f r r
+elEnv f =
+    E1 (\r -> toElem r (f r))
 
 
 attrEnv : (r -> Attr r a) -> Attr r a
@@ -295,14 +307,17 @@ checkbox :
         , onChange : Bool -> a
         }
     -> El r a
-checkbox attrs c r =
-    Input.checkbox
-        (toAttrs r attrs)
-        { checked = c.checked
-        , icon = \b -> c.icon b r
-        , label = c.label r
-        , onChange = c.onChange
-        }
+checkbox attrs c =
+    E1
+        (\r ->
+            Input.checkbox
+                (toAttrs r attrs)
+                { checked = c.checked
+                , icon = \b -> toElem r (c.icon b)
+                , label = c.label r
+                , onChange = c.onChange
+                }
+        )
 
 
 textBox :
@@ -314,14 +329,17 @@ textBox :
         , text : String
         }
     -> El r a
-textBox attrs t r =
-    Input.text
-        (toAttrs r attrs)
-        { label = t.label r
-        , onChange = t.onChange
-        , placeholder = Maybe.map (\p -> Input.placeholder (toAttrs r p.attrs) (p.el r)) t.placeholder
-        , text = t.text
-        }
+textBox attrs t =
+    E1
+        (\r ->
+            Input.text
+                (toAttrs r attrs)
+                { label = t.label r
+                , onChange = t.onChange
+                , placeholder = Maybe.map (\p -> Input.placeholder (toAttrs r p.attrs) (toElem r p.el)) t.placeholder
+                , text = t.text
+                }
+        )
 
 
 type alias Label r a =
@@ -330,22 +348,22 @@ type alias Label r a =
 
 labelAbove : List (Attr r a) -> El r a -> Label r a
 labelAbove attrs e r =
-    Input.labelAbove (toAttrs r attrs) (e r)
+    Input.labelAbove (toAttrs r attrs) (toElem r e)
 
 
 labelBelow : List (Attr r a) -> El r a -> Label r a
 labelBelow attrs e r =
-    Input.labelBelow (toAttrs r attrs) (e r)
+    Input.labelBelow (toAttrs r attrs) (toElem r e)
 
 
 labelLeft : List (Attr r a) -> El r a -> Label r a
 labelLeft attrs e r =
-    Input.labelLeft (toAttrs r attrs) (e r)
+    Input.labelLeft (toAttrs r attrs) (toElem r e)
 
 
 labelRight : List (Attr r a) -> El r a -> Label r a
 labelRight attrs e r =
-    Input.labelRight (toAttrs r attrs) (e r)
+    Input.labelRight (toAttrs r attrs) (toElem r e)
 
 
 labelHidden : String -> Label r a
@@ -360,32 +378,32 @@ labelHidden s _ =
 
 above : El r a -> Attr r a
 above e =
-    [ A1 (\r -> Element.above (e r)) ]
+    [ A1 (\r -> Element.above (toElem r e)) ]
 
 
 onRight : El r a -> Attr r a
 onRight e =
-    [ A1 (\r -> Element.onRight (e r)) ]
+    [ A1 (\r -> Element.onRight (toElem r e)) ]
 
 
 below : El r a -> Attr r a
 below e =
-    [ A1 (\r -> Element.below (e r)) ]
+    [ A1 (\r -> Element.below (toElem r e)) ]
 
 
 onLeft : El r a -> Attr r a
 onLeft e =
-    [ A1 (\r -> Element.onLeft (e r)) ]
+    [ A1 (\r -> Element.onLeft (toElem r e)) ]
 
 
 inFrontOf : El r a -> Attr r a
 inFrontOf e =
-    [ A1 (\r -> Element.inFront (e r)) ]
+    [ A1 (\r -> Element.inFront (toElem r e)) ]
 
 
 behind : El r a -> Attr r a
 behind e =
-    [ A1 (\r -> Element.behindContent (e r)) ]
+    [ A1 (\r -> Element.behindContent (toElem r e)) ]
 
 
 top : Attr r a
@@ -704,8 +722,8 @@ unselectable =
 
 
 image : List (Attr r a) -> { src : String, description : String } -> El r a
-image attrs img r =
-    Element.image (toAttrs r attrs) img
+image attrs img =
+    E1 (\r -> Element.image (toAttrs r attrs) img)
 
 
 
@@ -940,22 +958,22 @@ attrWhen mattrs f =
 
 
 elIf : Bool -> El r a -> El r a
-elIf b e r =
+elIf b e =
     if b then
-        e r
+        e
 
     else
-        Element.none
+        E0 Element.none
 
 
 elWhen : Maybe a -> (a -> El r b) -> El r b
-elWhen me f r =
+elWhen me f =
     case me of
         Nothing ->
-            Element.none
+            E0 Element.none
 
         Just e ->
-            f e r
+            f e
 
 
 
@@ -964,20 +982,20 @@ elWhen me f r =
 
 
 lazy : (a -> El r b) -> a -> El r b
-lazy =
-    Lazy.lazy2
+lazy f a0 =
+    E1 (Lazy.lazy2 (\a r -> toElem r (f a)) a0)
 
 
 lazy2 : (a -> b -> El r c) -> a -> b -> El r c
-lazy2 =
-    Lazy.lazy3
+lazy2 f a0 b0 =
+    E1 (Lazy.lazy3 (\a b r -> toElem r (f a b)) a0 b0)
 
 
 lazy3 : (a -> b -> c -> El r d) -> a -> b -> c -> El r d
-lazy3 =
-    Lazy.lazy4
+lazy3 f a0 b0 c0 =
+    E1 (Lazy.lazy4 (\a b c r -> toElem r (f a b c)) a0 b0 c0)
 
 
 lazy4 : (a -> b -> c -> d -> El r e) -> a -> b -> c -> d -> El r e
-lazy4 =
-    Lazy.lazy5
+lazy4 f a0 b0 c0 d0 =
+    E1 (Lazy.lazy5 (\a b c d r -> toElem r (f a b c d)) a0 b0 c0 d0)
