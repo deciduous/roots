@@ -1,10 +1,11 @@
 module Roots.Ui exposing
-    ( none, text, paragraph, link, svg, br
+    ( El, Attr, none, text, paragraph, link, svg, br
     , el, col, row, elEnv, attrEnv
     , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, width, maxWidth, padding, padding4, spacing
-    , Attr, Color, El, Font, Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, autocomplete, background, bold, border, border4, cursorText, elIf, elWhen, focusStyle, fontCenter, fontColor, fontFamily, id, image, italic, lazy, lazy2, lazy3, lazy4, lineHeight, monospace, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, pointer, rgb, roundedCorners, sansSerif, serif, size, strikethrough, toHex, toHtml, typeface, underline, unselectable
+    , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter
+    , Color, Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, autocomplete, background, border, border4, cursorText, elIf, elWhen, focusStyle, id, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, pointer, rgb, roundedCorners, toHex, toHtml, unselectable
     )
 
 {-|
@@ -12,7 +13,7 @@ module Roots.Ui exposing
 
 # Basic elements
 
-@docs none, text, paragraph, paragraphs, link, svg, br
+@docs El, Attr, none, text, paragraph, link, svg, br
 
 
 # Container elements
@@ -33,6 +34,11 @@ module Roots.Ui exposing
 # Sizing / padding / spacing
 
 @docs height, maxHeight, width, maxWidth, padding, padding4, spacing
+
+
+# Fonts
+
+@docs Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
 
 -}
 
@@ -523,6 +529,21 @@ strikethrough =
 fontCenter : Attr r a
 fontCenter =
     [ A0 Font.center ]
+
+
+fontLeft : Attr r a
+fontLeft =
+    [ A0 Font.alignLeft ]
+
+
+fontRight : Attr r a
+fontRight =
+    [ A0 Font.alignRight ]
+
+
+fontJustify : Attr r a
+fontJustify =
+    [ A0 Font.justify ]
 
 
 
