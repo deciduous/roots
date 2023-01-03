@@ -74,6 +74,7 @@ type Attr_ r a
 type El r a
     = E0 (Element.Element a)
     | E1 (r -> Element.Element a)
+    | E2 (r -> El r a)
 
 
 type alias Font =
@@ -132,6 +133,9 @@ toElem r e0 =
 
         E1 e ->
             e r
+
+        E2 e ->
+            toElem r (e r)
 
 
 toElems : r -> List (El r a) -> List (Element.Element a)
@@ -284,8 +288,8 @@ row attrs es =
 
 
 elEnv : (r -> El r a) -> El r a
-elEnv f =
-    E1 (\r -> toElem r (f r))
+elEnv =
+    E2
 
 
 attrEnv : (r -> Attr r a) -> Attr r a
