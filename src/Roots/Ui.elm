@@ -8,7 +8,7 @@ module Roots.Ui exposing
     , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
     , border, border4, roundedCorners
     , Color, background, rgb, toHex
-    , autocomplete, cursorText, pointer, unselectable
+    , autocomplete, cursorText, iframe, pointer, unselectable
     , Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, elIf, elWhen, focusStyle, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, toHtml
     )
 
@@ -62,7 +62,7 @@ module Roots.Ui exposing
 
 # Misc
 
-@docs autocomplete, cursorText, id, pointer, unselectable
+@docs autocomplete, cursorText, id, iframe, pointer, unselectable
 
 -}
 
@@ -742,6 +742,11 @@ cursorText =
 id : String -> Attr r a
 id x =
     attr_ (Html.Attributes.id x)
+
+
+iframe : List ( String, String ) -> El r a
+iframe attrs =
+    E0 (Element.html (Html.iframe (List.map (\( k, v ) -> Html.Attributes.attribute k v) attrs) []))
 
 
 pointer : Attr r a
