@@ -4,7 +4,7 @@ module Roots.Ui exposing
     , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , id
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
-    , height, maxHeight, width, maxWidth, padding, padding4, spacing
+    , height, maxHeight, maxHeightUpTo, width, maxWidth, maxWidthUpTo, padding, padding4, spacing
     , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
     , border, border4, roundedCorners
     , Color, background, rgb, toHex
@@ -42,7 +42,7 @@ module Roots.Ui exposing
 
 # Sizing / padding / spacing
 
-@docs height, maxHeight, width, maxWidth, padding, padding4, spacing
+@docs height, maxHeight, maxHeightUpTo, width, maxWidth, maxWidthUpTo, padding, padding4, spacing
 
 
 # Font
@@ -479,6 +479,11 @@ maxHeight =
     [ A0 (Element.height Element.fill) ]
 
 
+maxHeightUpTo : Int -> Attr r a
+maxHeightUpTo px =
+    [ A0 (Element.height (Element.maximum px Element.fill)) ]
+
+
 width : Int -> Attr r a
 width px =
     [ A0 (Element.width (Element.px px)) ]
@@ -487,6 +492,11 @@ width px =
 maxWidth : Attr r a
 maxWidth =
     [ A0 (Element.width Element.fill) ]
+
+
+maxWidthUpTo : Int -> Attr r a
+maxWidthUpTo px =
+    [ A0 (Element.width (Element.maximum px Element.fill)) ]
 
 
 padding : Int -> Int -> Int -> Int -> Attr r a
