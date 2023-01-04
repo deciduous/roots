@@ -2,10 +2,14 @@ module Roots.Ui exposing
     ( El, Attr, none, text, paragraph, link, svg, br
     , el, col, row, elEnv, attrEnv
     , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
+    , id
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, width, maxWidth, padding, padding4, spacing
     , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
-    , Color, Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, autocomplete, background, border, border4, cursorText, elIf, elWhen, focusStyle, id, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, pointer, rgb, roundedCorners, toHex, toHtml, unselectable
+    , border, border4, roundedCorners
+    , Color, background, rgb, toHex
+    , autocomplete, cursorText, pointer, unselectable
+    , Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, elIf, elWhen, focusStyle, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, toHtml
     )
 
 {-|
@@ -26,6 +30,11 @@ module Roots.Ui exposing
 @docs checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
 
 
+# Id
+
+@docs id
+
+
 # Positioning
 
 @docs above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
@@ -36,9 +45,24 @@ module Roots.Ui exposing
 @docs height, maxHeight, width, maxWidth, padding, padding4, spacing
 
 
-# Fonts
+# Font
 
 @docs Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
+
+
+# Border
+
+@docs border, border4, roundedCorners
+
+
+# Color
+
+@docs Color, background, rgb, toHex
+
+
+# Misc
+
+@docs autocomplete, cursorText, id, pointer, unselectable
 
 -}
 
