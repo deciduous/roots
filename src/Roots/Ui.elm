@@ -744,9 +744,9 @@ id x =
     attr_ (Html.Attributes.id x)
 
 
-iframe : List ( String, String ) -> El r a
-iframe attrs =
-    E0 (Element.html (Html.iframe (List.map (\( k, v ) -> Html.Attributes.attribute k v) attrs) []))
+iframe : List (Attr r a) -> List ( String, String ) -> El r a
+iframe attrs kvs =
+    el attrs (E0 (Element.html (Html.iframe (List.map (\( k, v ) -> Html.Attributes.attribute k v) kvs) [])))
 
 
 pointer : Attr r a
