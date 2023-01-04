@@ -1,16 +1,22 @@
 module Roots.Update exposing
-    ( Step
-    , Update
-    , command
-    , commandIf
-    , commandWhen
+    ( Update, Step, pure
+    , command, commandIf, commandWhen, attempt
+    , step, stepIf, stepWhen
     , mapModel
-    , pure
-    , step
-    , stepIf
-    , stepWhen
     , toUpdate
     )
+
+{-|
+
+@docs Update, Step, pure
+@docs command, commandIf, commandWhen, attempt
+@docs step, stepIf, stepWhen
+@docs mapModel
+@docs toUpdate
+
+-}
+
+import Task exposing (Task)
 
 
 type alias Update model event =
@@ -60,6 +66,13 @@ commandWhen condition cmd update =
 
         Just value ->
             command (cmd value) update
+
+
+{-| Add a task to an update.
+-}
+attempt : (Result x a -> event) -> Task x a -> Update model event -> Update model event
+attempt f task =
+    command (Task.attempt f task)
 
 
 step : Step model event -> Update model event -> Update model event
