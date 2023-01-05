@@ -1,5 +1,5 @@
 module Roots.Ui exposing
-    ( El, Attr, none, text, paragraph, link, svg, br
+    ( El, Attr, none, text, paragraph, link, svg, br, map
     , el, col, row, elEnv, attrEnv
     , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , id
@@ -17,7 +17,7 @@ module Roots.Ui exposing
 
 # Basic elements
 
-@docs El, Attr, none, text, paragraph, link, svg, br
+@docs El, Attr, none, text, paragraph, link, svg, br, map
 
 
 # Container elements
@@ -289,6 +289,19 @@ attr k v =
 attr_ : Html.Attribute a -> Attr r a
 attr_ x =
     [ A0 (Element.htmlAttribute x) ]
+
+
+map : (a -> b) -> El r a -> El r b
+map f e0 =
+    case e0 of
+        E0 e ->
+            E0 (Element.map f e)
+
+        E1 e ->
+            E1 (\r -> Element.map f (e r))
+
+        E2 e ->
+            E2 (\r -> map f (e r))
 
 
 
