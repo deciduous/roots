@@ -1,7 +1,7 @@
 module Roots.Ui exposing
     ( El, Attr, none, text, paragraph, link, svg, br, map
     , el, col, row, elEnv, attrEnv
-    , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
+    , checkbox, defaultCheckbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , id
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, maxHeightUpTo, width, maxWidth, maxWidthUpTo, padding, padding4, spacing
@@ -27,7 +27,7 @@ module Roots.Ui exposing
 
 # Input elements
 
-@docs checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
+@docs checkbox, defaultCheckbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
 
 
 # Id
@@ -359,6 +359,23 @@ checkbox attrs c =
                 , onChange = c.onChange
                 }
         )
+
+
+defaultCheckbox :
+    List (Attr r a)
+    ->
+        { checked : Bool
+        , label : Label r a
+        , onChange : Bool -> a
+        }
+    -> El r a
+defaultCheckbox attrs { checked, label, onChange } =
+    checkbox attrs
+        { checked = checked
+        , icon = \b -> E0 (Input.defaultCheckbox b)
+        , label = label
+        , onChange = onChange
+        }
 
 
 textBox :
