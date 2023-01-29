@@ -4,10 +4,11 @@ module Roots.Ui exposing
     , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , id
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
+    , moveUp, moveDown, moveLeft, moveRight, rotate
     , height, maxHeight, maxHeightUpTo, width, maxWidth, maxWidthUpTo, padding, padding4, spacing
     , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
     , border, border4, roundedCorners
-    , Color, background, rgb, toHex
+    , Color, background, rgb, rgba, toHex, transparent
     , autocomplete, blur, cursorText, iframe, pointer, unselectable
     , Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, elIf, elWhen, focusStyle, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, toHtml
     )
@@ -40,6 +41,11 @@ module Roots.Ui exposing
 @docs above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
 
 
+# Movement
+
+@docs moveUp, moveDown, moveLeft, moveRight, rotate
+
+
 # Sizing / padding / spacing
 
 @docs height, maxHeight, maxHeightUpTo, width, maxWidth, maxWidthUpTo, padding, padding4, spacing
@@ -57,7 +63,7 @@ module Roots.Ui exposing
 
 # Color
 
-@docs Color, background, rgb, toHex
+@docs Color, background, rgb, rgba, toHex, transparent
 
 
 # Misc
@@ -342,22 +348,10 @@ attrEnv f =
 checkbox :
     List (Attr r a)
     ->
-        { background :
-            { color : { checked : Color, unchecked : Color }
-            }
-        , border :
-            { color : { checked : Color, unchecked : Color }
-            , width : Int
-            }
-        , checked : Bool
-        , height : Int
+        { checked : Bool
         , icon : Bool -> El r a
         , label : Label r a
         , onChange : Bool -> a
-        , shadow :
-            { color : Color
-            }
-        , width : Int
         }
     -> El r a
 checkbox attrs c =
@@ -366,47 +360,7 @@ checkbox attrs c =
             Input.checkbox
                 (toAttrs r attrs)
                 { checked = c.checked
-                , icon =
-                    \checked ->
-                        Element.el
-                            [ Element.htmlAttribute (Html.Attributes.class "focusable")
-                            , Element.width (Element.px c.width)
-                            , Element.height (Element.px c.height)
-                            , Font.color (Element.rgb255 255 255 255)
-                            , Element.centerY
-                            , Font.size 9
-                            , Font.center
-                            , Border.rounded 3
-                            , Border.color (toColor (ifte checked c.border.color.checked c.border.color.unchecked))
-                            , Border.shadow
-                                { offset = ( 0, 0 )
-                                , blur = 1
-                                , size = 1
-                                , color = ifte checked toColor0 toColor c.shadow.color
-                                }
-                            , Background.color (toColor (ifte checked c.background.color.checked c.background.color.unchecked))
-                            , Border.width (ifte checked 0 c.border.width)
-                            , Element.inFront
-                                (Element.el
-                                    [ Border.color (Element.rgb255 255 255 255)
-                                    , Element.height (Element.px 6)
-                                    , Element.width (Element.px 9)
-                                    , Element.rotate (degrees -45)
-                                    , Element.centerX
-                                    , Element.centerY
-                                    , Element.moveUp 1
-                                    , Element.transparent (not checked)
-                                    , Border.widthEach
-                                        { top = 0
-                                        , left = 2
-                                        , bottom = 2
-                                        , right = 0
-                                        }
-                                    ]
-                                    Element.none
-                                )
-                            ]
-                            Element.none
+                , icon = \checked -> toElem r (c.icon checked)
                 , label = c.label r
                 , onChange = c.onChange
                 }
@@ -527,6 +481,36 @@ centerX =
 centerY : Attr r a
 centerY =
     [ A0 Element.centerY ]
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Movement
+
+
+moveUp : Float -> Attr r a
+moveUp n =
+    [ A0 (Element.moveUp n) ]
+
+
+moveDown : Float -> Attr r a
+moveDown n =
+    [ A0 (Element.moveDown n) ]
+
+
+moveLeft : Float -> Attr r a
+moveLeft n =
+    [ A0 (Element.moveLeft n) ]
+
+
+moveRight : Float -> Attr r a
+moveRight n =
+    [ A0 (Element.moveRight n) ]
+
+
+rotate : Float -> Attr r a
+rotate n =
+    [ A0 (Element.rotate n) ]
 
 
 
@@ -703,17 +687,13 @@ type Color
         { r : Int
         , g : Int
         , b : Int
+        , a : Float
         }
 
 
 toColor : Color -> Element.Color
-toColor (Color { r, g, b }) =
-    Element.rgb255 r g b
-
-
-toColor0 : Color -> Element.Color
-toColor0 (Color { r, g, b }) =
-    Element.rgba255 r g b 0
+toColor (Color { r, g, b, a }) =
+    Element.rgba255 r g b a
 
 
 background : Color -> Attr r a
@@ -723,7 +703,12 @@ background c =
 
 rgb : Int -> Int -> Int -> Color
 rgb r g b =
-    Color { r = clamp 0 255 r, g = clamp 0 255 g, b = clamp 0 255 b }
+    Color { r = clamp 0 255 r, g = clamp 0 255 g, b = clamp 0 255 b, a = 1 }
+
+
+rgba : Int -> Int -> Int -> Float -> Color
+rgba r g b a =
+    Color { r = clamp 0 255 r, g = clamp 0 255 g, b = clamp 0 255 b, a = clamp 0 1 a }
 
 
 {-| Convert a color into a hexadecimal string (without a leading #).
@@ -792,6 +777,11 @@ hexChar n =
 
         _ ->
             "f"
+
+
+transparent : Attr r a
+transparent =
+    [ A0 (Element.transparent True) ]
 
 
 
