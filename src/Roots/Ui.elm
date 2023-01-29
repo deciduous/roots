@@ -1,7 +1,7 @@
 module Roots.Ui exposing
     ( El, Attr, none, text, paragraph, link, svg, br, map
     , el, col, row, elEnv, attrEnv
-    , checkbox, defaultCheckbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
+    , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , id
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , height, maxHeight, maxHeightUpTo, width, maxWidth, maxWidthUpTo, padding, padding4, spacing
@@ -27,7 +27,7 @@ module Roots.Ui exposing
 
 # Input elements
 
-@docs checkbox, defaultCheckbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
+@docs checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
 
 
 # Id
@@ -342,10 +342,22 @@ attrEnv f =
 checkbox :
     List (Attr r a)
     ->
-        { checked : Bool
+        { background :
+            { color : { checked : Color, unchecked : Color }
+            }
+        , border :
+            { color : { checked : Color, unchecked : Color }
+            , width : Int
+            }
+        , checked : Bool
+        , height : Int
         , icon : Bool -> El r a
         , label : Label r a
         , onChange : Bool -> a
+        , shadow :
+            { color : Color
+            }
+        , width : Int
         }
     -> El r a
 checkbox attrs c =
@@ -354,28 +366,51 @@ checkbox attrs c =
             Input.checkbox
                 (toAttrs r attrs)
                 { checked = c.checked
-                , icon = \b -> toElem r (c.icon b)
+                , icon =
+                    \checked ->
+                        Element.el
+                            [ Element.htmlAttribute (Html.Attributes.class "focusable")
+                            , Element.width (Element.px c.width)
+                            , Element.height (Element.px c.height)
+                            , Font.color (Element.rgb255 255 255 255)
+                            , Element.centerY
+                            , Font.size 9
+                            , Font.center
+                            , Border.rounded 3
+                            , Border.color (toColor (ifte checked c.border.color.checked c.border.color.unchecked))
+                            , Border.shadow
+                                { offset = ( 0, 0 )
+                                , blur = 1
+                                , size = 1
+                                , color = ifte checked toColor0 toColor c.shadow.color
+                                }
+                            , Background.color (toColor (ifte checked c.background.color.checked c.background.color.unchecked))
+                            , Border.width (ifte checked 0 c.border.width)
+                            , Element.inFront
+                                (Element.el
+                                    [ Border.color (Element.rgb255 255 255 255)
+                                    , Element.height (Element.px 6)
+                                    , Element.width (Element.px 9)
+                                    , Element.rotate (degrees -45)
+                                    , Element.centerX
+                                    , Element.centerY
+                                    , Element.moveUp 1
+                                    , Element.transparent (not checked)
+                                    , Border.widthEach
+                                        { top = 0
+                                        , left = 2
+                                        , bottom = 2
+                                        , right = 0
+                                        }
+                                    ]
+                                    Element.none
+                                )
+                            ]
+                            Element.none
                 , label = c.label r
                 , onChange = c.onChange
                 }
         )
-
-
-defaultCheckbox :
-    List (Attr r a)
-    ->
-        { checked : Bool
-        , label : Label r a
-        , onChange : Bool -> a
-        }
-    -> El r a
-defaultCheckbox attrs { checked, label, onChange } =
-    checkbox attrs
-        { checked = checked
-        , icon = \b -> E0 (Input.defaultCheckbox b)
-        , label = label
-        , onChange = onChange
-        }
 
 
 textBox :
@@ -674,6 +709,11 @@ type Color
 toColor : Color -> Element.Color
 toColor (Color { r, g, b }) =
     Element.rgb255 r g b
+
+
+toColor0 : Color -> Element.Color
+toColor0 (Color { r, g, b }) =
+    Element.rgba255 r g b 0
 
 
 background : Color -> Attr r a
