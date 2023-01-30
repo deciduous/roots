@@ -2,6 +2,7 @@ module Roots.List exposing
     ( Modification(..)
     , asSingleton
     , chunk
+    , deleteFirst
     , dropWhile
     , findFirst
     , indexed
@@ -47,6 +48,26 @@ chunk_ n xs =
 
         ( ys, zs ) ->
             ys :: chunk_ n zs
+
+
+{-| Delete the first occurrence of an element.
+-}
+deleteFirst : (a -> Bool) -> List a -> List a
+deleteFirst p =
+    let
+        loop xs =
+            case xs of
+                [] ->
+                    []
+
+                y :: ys ->
+                    if p y then
+                        ys
+
+                    else
+                        y :: loop ys
+    in
+    loop
 
 
 dropWhile : (a -> Bool) -> List a -> List a
