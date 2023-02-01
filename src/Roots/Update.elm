@@ -1,114 +1,98 @@
 module Roots.Update exposing
-    ( Update, pure
-    , command, commandIf, commandWhen, attempt
-    , step, stepIf, stepWhen
-    , mapModel
+    ( Update, empty, sequence
+    , pure, command, impure, ask
+    , if_, when
     , toUpdate
     )
 
 {-|
 
-@docs Update, pure
-@docs command, commandIf, commandWhen, attempt
-@docs step, stepIf, stepWhen
-@docs mapModel
+@docs Update, empty, sequence
+@docs pure, command, impure, ask
+@docs if_, when
 @docs toUpdate
 
 -}
 
-import Task exposing (Task)
+import Roots.Eff as Eff exposing (Eff)
+import Roots.Internal.Eff as Eff
+import Roots.Internal.Update as Update
 
 
-type alias Update model event =
-    { commands : List (Cmd event)
-    , model : model
-    }
+type alias Update e a =
+    Update.Update e a
 
 
-{-| Create a pure update from a model.
+{-| The no-op update.
 -}
-pure : model -> Update model event
-pure m =
-    { commands = []
-    , model = m
-    }
+empty : Update e a
+empty =
+    Eff.pure
 
 
-{-| Add a command to an update.
+{-| Sequence a list of updates into one, run left-to-right.
 -}
-command : Cmd event -> Update model event -> Update model event
-command cmd update =
-    { update | commands = cmd :: update.commands }
-
-
-{-| Conditionally add a command to an update.
--}
-commandIf : Bool -> Cmd event -> Update model event -> Update model event
-commandIf condition cmd update =
-    if condition then
-        command cmd update
-
-    else
-        update
-
-
-{-| Conditionally add a command to an update.
--}
-commandWhen : Maybe a -> (a -> Cmd event) -> Update model event -> Update model event
-commandWhen condition cmd update =
-    case condition of
-        Nothing ->
-            update
-
-        Just value ->
-            command (cmd value) update
-
-
-{-| Add a task to an update.
--}
-attempt : (Result x a -> event) -> Task x a -> Update model event -> Update model event
-attempt f task =
-    command (Task.attempt f task)
-
-
-step : (model -> Update model event) -> Update model event -> Update model event
-step stp { commands, model } =
+sequence : List (Update e a) -> Update e a
+sequence =
     let
-        update =
-            stp model
+        f : Update e a -> Update e a -> Update e a
+        f upd1 upds0 model0 =
+            upds0 model0
+                |> Eff.andThen upd1
     in
-    { update | commands = update.commands ++ commands }
+    List.foldl f empty
 
 
-stepIf : Bool -> (model -> Update model event) -> Update model event -> Update model event
-stepIf condition stp update =
-    if condition then
-        step stp update
+{-| Make an update from a pure function.
+-}
+pure : (a -> a) -> Update e a
+pure f x =
+    Eff.pure (f x)
+
+
+{-| Make an update from a command.
+-}
+command : (a -> Cmd e) -> Update e a
+command c x =
+    Eff.pure x
+        |> Eff.command (c x)
+
+
+impure : (a -> Eff e a) -> Update e a
+impure =
+    identity
+
+
+ask : (a -> Update e a) -> Update e a
+ask f x =
+    f x x
+
+
+{-| Make an update conditional on its model.
+-}
+if_ : (a -> Bool) -> List (Update e a) -> Update e a
+if_ p u x =
+    if p x then
+        sequence u x
 
     else
-        update
+        Eff.pure x
 
 
-stepWhen : Maybe a -> (a -> model -> Update model event) -> Update model event -> Update model event
-stepWhen condition stp update =
-    case condition of
+{-| Make an update conditional on its model.
+-}
+when : (a -> Maybe b) -> (b -> List (Update e a)) -> Update e a
+when p u x =
+    case p x of
         Nothing ->
-            update
+            Eff.pure x
 
-        Just value ->
-            step (stp value) update
-
-
-mapModel :
-    (model0 -> model1)
-    -> Update model0 event
-    -> Update model1 event
-mapModel f { commands, model } =
-    { commands = commands
-    , model = f model
-    }
+        Just y ->
+            sequence (u y) x
 
 
-toUpdate : Update model event -> ( model, Cmd event )
-toUpdate { commands, model } =
-    ( model, Cmd.batch commands )
+{-| FIXME don't export this once roots defines its own browser application
+-}
+toUpdate : Update e a -> a -> ( a, Cmd e )
+toUpdate u x =
+    Eff.toTuple (u x)
