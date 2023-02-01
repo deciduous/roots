@@ -1,5 +1,5 @@
 module Roots.Update exposing
-    ( Update, Step, pure
+    ( Update, pure
     , command, commandIf, commandWhen, attempt
     , step, stepIf, stepWhen
     , mapModel
@@ -8,7 +8,7 @@ module Roots.Update exposing
 
 {-|
 
-@docs Update, Step, pure
+@docs Update, pure
 @docs command, commandIf, commandWhen, attempt
 @docs step, stepIf, stepWhen
 @docs mapModel
@@ -25,13 +25,9 @@ type alias Update model event =
     }
 
 
-type alias Step model event =
-    model -> Update model event
-
-
 {-| Create a pure update from a model.
 -}
-pure : Step model event
+pure : model -> Update model event
 pure m =
     { commands = []
     , model = m
@@ -75,7 +71,7 @@ attempt f task =
     command (Task.attempt f task)
 
 
-step : Step model event -> Update model event -> Update model event
+step : (model -> Update model event) -> Update model event -> Update model event
 step stp { commands, model } =
     let
         update =
@@ -84,7 +80,7 @@ step stp { commands, model } =
     { update | commands = update.commands ++ commands }
 
 
-stepIf : Bool -> Step model event -> Update model event -> Update model event
+stepIf : Bool -> (model -> Update model event) -> Update model event -> Update model event
 stepIf condition stp update =
     if condition then
         step stp update
@@ -93,7 +89,7 @@ stepIf condition stp update =
         update
 
 
-stepWhen : Maybe a -> (a -> Step model event) -> Update model event -> Update model event
+stepWhen : Maybe a -> (a -> model -> Update model event) -> Update model event -> Update model event
 stepWhen condition stp update =
     case condition of
         Nothing ->
