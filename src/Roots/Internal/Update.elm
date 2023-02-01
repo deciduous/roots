@@ -4,4 +4,4 @@ import Roots.Internal.Eff exposing (Eff)
 
 
 type alias Update e a =
-    a -> Eff e a
+    List (a -> Eff e a)

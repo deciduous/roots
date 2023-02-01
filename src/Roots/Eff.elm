@@ -70,10 +70,15 @@ attempt f task =
 {-| Update an effectful value.
 -}
 andThen : Update e a -> Eff e a -> Eff e a
-andThen upd (Eff.Eff eff0) =
-    case upd eff0.model of
-        Eff.Eff eff1 ->
-            Eff.Eff { eff1 | commands = eff0.commands ++ eff1.commands }
+andThen u e =
+    List.foldl andThen0 e u
+
+
+andThen0 : (a -> Eff e b) -> Eff e a -> Eff e b
+andThen0 u (Eff.Eff e0) =
+    case u e0.model of
+        Eff.Eff e1 ->
+            Eff.Eff { e1 | commands = e1.commands ++ e0.commands }
 
 
 {-| Conditionally update an effectful value.
