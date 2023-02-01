@@ -76,12 +76,12 @@ ask f =
 
 {-| Make an update conditional on its model.
 -}
-if_ : (a -> Bool) -> List (Update e a) -> Update e a
+if_ : (a -> Bool) -> Update e a -> Update e a
 if_ p u =
     [ \x ->
         if p x then
             Eff.pure x
-                |> Eff.andThen (List.concat u)
+                |> Eff.andThen u
 
         else
             Eff.pure x
@@ -90,7 +90,7 @@ if_ p u =
 
 {-| Make an update conditional on its model.
 -}
-when : (a -> Maybe b) -> (b -> List (Update e a)) -> Update e a
+when : (a -> Maybe b) -> (b -> Update e a) -> Update e a
 when p u =
     [ \x ->
         case p x of
@@ -99,7 +99,7 @@ when p u =
 
             Just y ->
                 Eff.pure x
-                    |> Eff.andThen (List.concat (u y))
+                    |> Eff.andThen (u y)
     ]
 
 
