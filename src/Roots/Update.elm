@@ -1,6 +1,6 @@
 module Roots.Update exposing
     ( Update, empty, sequence
-    , pure, command, impure, ask
+    , pure, command, attempt, impure, ask
     , if_, when
     , toUpdate
     )
@@ -8,7 +8,7 @@ module Roots.Update exposing
 {-|
 
 @docs Update, empty, sequence
-@docs pure, command, impure, ask
+@docs pure, command, attempt, impure, ask
 @docs if_, when
 @docs toUpdate
 
@@ -17,6 +17,7 @@ module Roots.Update exposing
 import Roots.Eff as Eff exposing (Eff)
 import Roots.Internal.Eff as Eff
 import Roots.Internal.Update as Update
+import Task exposing (Task)
 
 
 type alias Update e a =
@@ -59,6 +60,13 @@ command c =
             , commands = [ c x ]
             }
     ]
+
+
+{-| Make an update from a task.
+-}
+attempt : (Result r s -> e) -> (a -> Task r s) -> Update e a
+attempt f task =
+    command (\x -> Task.attempt f (task x))
 
 
 impure : (a -> Eff e a) -> Update e a
