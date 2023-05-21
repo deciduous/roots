@@ -13,12 +13,17 @@ module Roots.List exposing
     , modifyFirst
     , modifyFirst_
     , overLast
+    , shuffle
     , splitAt
+    , traverseRandom
     , uncons
     , unsnoc
     )
 
 import List
+import Random
+import Random.List
+import Roots.Random exposing (Random)
 
 
 asSingleton : List a -> Maybe a
@@ -222,6 +227,11 @@ overLast f xs0 =
             x :: overLast f xs
 
 
+shuffle : List a -> Random (List a)
+shuffle xs =
+    Random.step (Random.List.shuffle xs)
+
+
 splitAt : Int -> List a -> ( List a, List a )
 splitAt n xs =
     if n <= 0 then
@@ -247,6 +257,16 @@ splitAt_ n xs0 =
                         splitAt_ (n - 1) xs
                 in
                 ( x :: ys, zs )
+
+
+traverseRandom : (a -> Random b) -> List a -> Random (List b)
+traverseRandom f xs0 =
+    case xs0 of
+        [] ->
+            Roots.Random.pure []
+
+        x :: xs ->
+            Roots.Random.map2 (::) (f x) (traverseRandom f xs)
 
 
 uncons : List a -> Maybe ( a, List a )
