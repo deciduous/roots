@@ -12,6 +12,8 @@ module Roots.Random exposing
     )
 
 import Random
+import Roots.Generator exposing (Generator)
+import Roots.List1 exposing (List1(..))
 
 
 type alias Random a =
@@ -76,6 +78,6 @@ then_ f ra seed0 =
     f a seed1
 
 
-generate : Random.Generator a -> Random a
+generate : Generator a -> Random a
 generate =
     Random.step

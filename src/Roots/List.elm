@@ -5,6 +5,7 @@ module Roots.List exposing
     , deleteFirst
     , dropWhile
     , findFirst
+    , gen
     , indexed
     , isSingleton
     , mapAndReverse
@@ -102,6 +103,11 @@ findFirst f xs0 =
 
                 Just y ->
                     Just y
+
+
+gen : Int -> Random.Generator a -> Random.Generator (List a)
+gen =
+    Random.list
 
 
 indexed : List a -> List ( Int, a )
