@@ -10,6 +10,7 @@ module Roots.Array exposing
 
 import Array exposing (Array)
 import Random
+import Roots.List as List
 import Roots.Random exposing (Random)
 
 
@@ -65,20 +66,12 @@ sample x0 xs =
             (Random.step (Random.int 0 (Array.length xs - 1)))
 
 
+{-| Sample without replacement.
+-}
 sampleN : Int -> Array a -> Random (List a)
-sampleN n xs =
-    if Array.length xs == 0 then
-        Roots.Random.pure []
-
-    else
-        sampleN_ n xs
-
-
-sampleN_ : Int -> Array a -> Random (List a)
-sampleN_ n xs =
-    Roots.Random.map
-        (\ixs -> List.filterMap (\ix -> Array.get ix xs) ixs)
-        (Random.step (Random.list n (Random.int 0 (Array.length xs - 1))))
+sampleN n =
+    -- FIXME more efficient implementation.
+    Array.toList >> List.shuffle >> Roots.Random.map (List.take n)
 
 
 singleton : a -> Array a
