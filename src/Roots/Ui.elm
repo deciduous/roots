@@ -1,5 +1,5 @@
 module Roots.Ui exposing
-    ( El, Attr, none, text, paragraph, link, svg, br, map
+    ( El, Attr, none, text, paragraph, link, svg, br, html, map
     , el, col, row, elEnv, attrEnv
     , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , id
@@ -18,7 +18,7 @@ module Roots.Ui exposing
 
 # Basic elements
 
-@docs El, Attr, none, text, paragraph, link, svg, br, map
+@docs El, Attr, none, text, paragraph, link, svg, br, html, map
 
 
 # Container elements
@@ -285,6 +285,13 @@ svg xs ys =
 br : El r a
 br =
     E0 (Element.html (Html.br [] []))
+
+
+{-| Html escape hatch.
+-}
+html : Html a -> El r a
+html x =
+    E0 (Element.html x)
 
 
 attr : String -> String -> Attr r a
