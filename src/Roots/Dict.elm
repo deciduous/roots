@@ -3,6 +3,12 @@ module Roots.Dict exposing
     , upsert
     )
 
+{-| Dict.
+
+@docs adjust upsert
+
+-}
+
 import Dict exposing (Dict)
 
 

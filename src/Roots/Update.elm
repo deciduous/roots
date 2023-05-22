@@ -7,6 +7,8 @@ module Roots.Update exposing
 
 {-|
 
+Update.
+
 @docs Update, empty, sequence
 @docs pure, command, attempt, impure, ask
 @docs if_, when

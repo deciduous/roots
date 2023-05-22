@@ -8,6 +8,12 @@ module Roots.Array exposing
     , singleton
     )
 
+{-| Array.
+
+@docs cons intersperse last member sample sampleN singleton
+
+-}
+
 import Array exposing (Array)
 import Random
 import Roots.List as List

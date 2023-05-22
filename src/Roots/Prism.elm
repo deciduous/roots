@@ -4,6 +4,13 @@ module Roots.Prism exposing
     , review
     )
 
+{-| Prism.
+
+@docs Prism
+@docs preview review
+
+-}
+
 
 type alias Prism s a =
     ( s -> Maybe a, a -> s )

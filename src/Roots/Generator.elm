@@ -9,6 +9,14 @@ module Roots.Generator exposing
     , then_
     )
 
+{-| Generator.
+
+@docs oneOf
+@docs map map2 map3 map4 map5
+@docs then_
+
+-}
+
 import Random
 import Roots.List1 exposing (List1(..))
 

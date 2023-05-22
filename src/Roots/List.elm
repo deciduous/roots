@@ -21,6 +21,13 @@ module Roots.List exposing
     , unsnoc
     )
 
+{-| List.
+
+@docs Modification
+@docs asSingleton chunk deleteFirst dropWhile findFirst gen indexed isSingleton mapAndReverse mapMaybe modify modifyFirst modifyFirst_ overLast shuffle splitAt traverseRandom uncons unsnoc
+
+-}
+
 import List
 import Random
 import Random.List

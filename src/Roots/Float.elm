@@ -1,5 +1,11 @@
 module Roots.Float exposing (gen)
 
+{-| Float.
+
+@docs gen
+
+-}
+
 import Random
 
 

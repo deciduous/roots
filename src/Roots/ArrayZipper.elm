@@ -1,19 +1,27 @@
 module Roots.ArrayZipper exposing
     ( ArrayZipper
-    , cycleLeft
     , cycleRight
-    , empty
-    , focus
-    , focusOn
-    , fromArray
-    , fromList
-    , index
-    , length
-    , lengthLeft
-    , lengthRight
-    , toArray
-    , toList
+    , cycleLeft, empty, focus, focusOn, fromArray, fromList, index, length, lengthLeft, lengthRight, toArray, toList
     )
+
+{-| ArrayZipper.
+
+@docs ArrayZipper
+@docs cycleLeft
+@docs cycleRight
+@docs empty
+@docs focus
+@docs focusOn
+@docs fromArray
+@docs fromList
+@docs index
+@docs length
+@docs lengthLeft
+@docs lengthRight
+@docs toArray
+@docs toList
+
+-}
 
 import Array exposing (Array)
 
@@ -71,6 +79,8 @@ cycleLeft (ArrayZipper zipper) =
         ArrayZipper { zipper | index_ = zipper.index_ - 1 }
 
 
+{-| Cycle right.
+-}
 cycleRight : ArrayZipper a -> ArrayZipper a
 cycleRight (ArrayZipper { array, index_ }) =
     let

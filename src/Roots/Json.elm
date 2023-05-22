@@ -28,6 +28,13 @@ module Roots.Json exposing
     , variant3
     )
 
+{-| Json.
+
+@docs Codec Decoder Error Value VariantCodec
+@docs array bool float int list object0 object2 object4 object5 object6 object7 object8 object9 objectVariantCodec string toDecoder toString toValue tuple2 variant2 variant3
+
+-}
+
 import Array
 import Json.Decode
 import Json.Encode

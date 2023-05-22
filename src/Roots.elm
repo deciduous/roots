@@ -17,6 +17,13 @@ module Roots exposing
     , isOdd
     )
 
+{-| Roots.
+
+@docs Array ArrayZipper Dict Prism Set T4 T5 T6 T7 T8 T9 T10 T11
+@docs ifte isEven isOdd
+
+-}
+
 import Array
 import Dict
 import Roots.ArrayZipper as ArrayZipper

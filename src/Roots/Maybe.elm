@@ -1,4 +1,13 @@
-module Roots.Maybe exposing (..)
+module Roots.Maybe exposing
+    ( isJust
+    , isNothing
+    )
+
+{-| Maybe.
+
+@docs isJust isNothing
+
+-}
 
 
 isJust : Maybe a -> Bool

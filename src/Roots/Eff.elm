@@ -8,6 +8,8 @@ module Roots.Eff exposing
 
 {-|
 
+Eff.
+
 @docs Eff, pure
 @docs command, commandIf, commandWhen
 @docs attempt

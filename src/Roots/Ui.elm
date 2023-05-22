@@ -13,7 +13,7 @@ module Roots.Ui exposing
     , Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, elIf, elWhen, focusStyle, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, toHtml
     )
 
-{-|
+{-| Ui.
 
 
 # Basic elements

@@ -3,6 +3,12 @@ module Roots.String exposing
     , stripPrefix_
     )
 
+{-| String.
+
+@docs stripPrefix stripPrefix_
+
+-}
+
 
 stripPrefix : String -> String -> Maybe String
 stripPrefix prefix string =

@@ -1,5 +1,11 @@
 module Roots.Int exposing (gen)
 
+{-| Int.
+
+@docs gen
+
+-}
+
 import Random
 
 

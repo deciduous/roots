@@ -11,6 +11,13 @@ module Roots.Random exposing
     , then_
     )
 
+{-| Random.
+
+@docs Random Seed
+@docs generate map map2 pure run run_ seed then_
+
+-}
+
 import Random
 import Roots.Generator exposing (Generator)
 import Roots.List1 exposing (List1(..))
