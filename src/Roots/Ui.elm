@@ -1,5 +1,5 @@
 module Roots.Ui exposing
-    ( El, Attr, none, text, paragraph, link, svg, br, html, map
+    ( El, Attr, none, text, paragraph, link, svg, br, html, map, mapEnv
     , el, col, row, elEnv, attrEnv
     , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , id
@@ -18,7 +18,7 @@ module Roots.Ui exposing
 
 # Basic elements
 
-@docs El, Attr, none, text, paragraph, link, svg, br, html, map
+@docs El, Attr, none, text, paragraph, link, svg, br, html, map, mapEnv
 
 
 # Container elements
@@ -315,6 +315,19 @@ map f e0 =
 
         E2 e ->
             E2 (\r -> map f (e r))
+
+
+mapEnv : (r -> s) -> El s a -> El r a
+mapEnv f e0 =
+    case e0 of
+        E0 e ->
+            E0 e
+
+        E1 e ->
+            E1 (\r -> e (f r))
+
+        E2 e ->
+            E2 (\r -> mapEnv f (e (f r)))
 
 
 

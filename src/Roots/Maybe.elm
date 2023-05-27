@@ -5,11 +5,14 @@ module Roots.Maybe exposing
 
 {-| Maybe.
 
-@docs isJust isNothing
+@docs isJust
+@docs isNothing
 
 -}
 
 
+{-| Is this value a Just?
+-}
 isJust : Maybe a -> Bool
 isJust x =
     case x of
@@ -19,7 +22,8 @@ isJust x =
         Just _ ->
             True
 
-
+{-| Is this value a Nothing?
+-}
 isNothing : Maybe a -> Bool
 isNothing x =
     case x of

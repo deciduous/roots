@@ -10,13 +10,13 @@ module Roots.List exposing
     , isSingleton
     , mapAndReverse
     , mapMaybe
+    , mapRandom
     , modify
     , modifyFirst
     , modifyFirst_
     , overLast
     , shuffle
     , splitAt
-    , traverseRandom
     , uncons
     , unsnoc
     )
@@ -24,16 +24,36 @@ module Roots.List exposing
 {-| List.
 
 @docs Modification
-@docs asSingleton chunk deleteFirst dropWhile findFirst gen indexed isSingleton mapAndReverse mapMaybe modify modifyFirst modifyFirst_ overLast shuffle splitAt traverseRandom uncons unsnoc
+@docs asSingleton
+@docs chunk
+@docs deleteFirst
+@docs dropWhile
+@docs findFirst
+@docs gen
+@docs indexed
+@docs isSingleton
+@docs mapAndReverse
+@docs mapMaybe
+@docs mapRandom
+@docs modify
+@docs modifyFirst
+@docs modifyFirst_
+@docs overLast
+@docs shuffle
+@docs splitAt
+@docs uncons
+@docs unsnoc
 
 -}
 
 import List
-import Random
+import Random exposing (Generator)
 import Random.List
 import Roots.Random exposing (Random)
 
 
+{-| Get the value of a singleton list.
+-}
 asSingleton : List a -> Maybe a
 asSingleton xs =
     case xs of
@@ -44,6 +64,8 @@ asSingleton xs =
             Nothing
 
 
+{-| Break a list into chunks.
+-}
 chunk : Int -> List a -> List (List a)
 chunk n xs =
     if n <= 0 then
@@ -63,7 +85,7 @@ chunk_ n xs =
             ys :: chunk_ n zs
 
 
-{-| Delete the first occurrence of an element.
+{-| Delete the first occurrence of an element in a list.
 -}
 deleteFirst : (a -> Bool) -> List a -> List a
 deleteFirst p =
@@ -83,6 +105,8 @@ deleteFirst p =
     loop
 
 
+{-| Drop elements from the head of a list while they satisfy a predicate.
+-}
 dropWhile : (a -> Bool) -> List a -> List a
 dropWhile f xs =
     case xs of
@@ -97,6 +121,8 @@ dropWhile f xs =
                 xs
 
 
+{-| Find the first element of a list that satisfies a predicate.
+-}
 findFirst : (a -> Maybe b) -> List a -> Maybe b
 findFirst f xs0 =
     case xs0 of
@@ -112,7 +138,9 @@ findFirst f xs0 =
                     Just y
 
 
-gen : Int -> Random.Generator a -> Random.Generator (List a)
+{-| Generate a random list of a specific length.
+-}
+gen : Int -> Generator a -> Generator (List a)
 gen =
     Random.list
 
@@ -156,6 +184,16 @@ mapMaybe f xs =
                     z :: zs
 
 
+mapRandom : (a -> Random b) -> List a -> Random (List b)
+mapRandom f xs0 =
+    case xs0 of
+        [] ->
+            Roots.Random.pure []
+
+        x :: xs ->
+            Roots.Random.map2 (::) (f x) (mapRandom f xs)
+
+
 modify : Int -> (a -> ( Maybe a, b )) -> List a -> ( List a, Maybe b )
 modify n f xs0 =
     case xs0 of
@@ -180,12 +218,14 @@ modify n f xs0 =
                     ( x :: ys, b )
 
 
+{-| The modification of a list element.
+-}
 type Modification a
     = Drop
     | Keep a
 
 
-{-| Modify the first element of a list that matches a predicate.
+{-| Modify the first element of a list that matches a predicate, and return a value if the modification was made.
 -}
 modifyFirst : (a -> Maybe ( Modification a, b )) -> List a -> ( List a, Maybe b )
 modifyFirst f xs0 =
@@ -209,6 +249,8 @@ modifyFirst f xs0 =
                     ( y :: xs, Just b )
 
 
+{-| Modify the first element of a list that matches a predicate.
+-}
 modifyFirst_ : (a -> Maybe (Modification a)) -> List a -> List a
 modifyFirst_ f xs0 =
     case xs0 of
@@ -227,6 +269,8 @@ modifyFirst_ f xs0 =
                     y :: xs
 
 
+{-| Apply a function over the last element of a list.
+-}
 overLast : (a -> a) -> List a -> List a
 overLast f xs0 =
     case xs0 of
@@ -240,11 +284,15 @@ overLast f xs0 =
             x :: overLast f xs
 
 
+{-| Shuffle a list.
+-}
 shuffle : List a -> Random (List a)
 shuffle xs =
     Random.step (Random.List.shuffle xs)
 
 
+{-| Split a list at an index.
+-}
 splitAt : Int -> List a -> ( List a, List a )
 splitAt n xs =
     if n <= 0 then
@@ -272,16 +320,8 @@ splitAt_ n xs0 =
                 ( x :: ys, zs )
 
 
-traverseRandom : (a -> Random b) -> List a -> Random (List b)
-traverseRandom f xs0 =
-    case xs0 of
-        [] ->
-            Roots.Random.pure []
-
-        x :: xs ->
-            Roots.Random.map2 (::) (f x) (traverseRandom f xs)
-
-
+{-| Break a list into its head element and tail elements.
+-}
 uncons : List a -> Maybe ( a, List a )
 uncons xs =
     case xs of
@@ -292,6 +332,8 @@ uncons xs =
             Just ( y, ys )
 
 
+{-| Break a list into its initial elements and last element.
+-}
 unsnoc : List a -> Maybe ( List a, a )
 unsnoc xs =
     case xs of

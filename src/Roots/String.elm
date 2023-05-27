@@ -5,11 +5,14 @@ module Roots.String exposing
 
 {-| String.
 
-@docs stripPrefix stripPrefix_
+@docs stripPrefix
+@docs stripPrefix_
 
 -}
 
 
+{-| Strip a prefix from a string, and return the resulting string, if the prefix was stripped.
+-}
 stripPrefix : String -> String -> Maybe String
 stripPrefix prefix string =
     if String.startsWith prefix string then
@@ -19,6 +22,8 @@ stripPrefix prefix string =
         Nothing
 
 
+{-| Strip a prefix from a string, if it exists.
+-}
 stripPrefix_ : String -> String -> String
 stripPrefix_ prefix string =
     if String.startsWith prefix string then
