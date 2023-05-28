@@ -10,13 +10,14 @@ module Roots.List exposing
     , isSingleton
     , mapAndReverse
     , mapMaybe
-    , mapRandom
     , modify
     , modifyFirst
     , modifyFirst_
     , overLast
     , shuffle
     , splitAt
+    , traverseMaybe
+    , traverseRandom
     , uncons
     , unsnoc
     )
@@ -34,13 +35,14 @@ module Roots.List exposing
 @docs isSingleton
 @docs mapAndReverse
 @docs mapMaybe
-@docs mapRandom
 @docs modify
 @docs modifyFirst
 @docs modifyFirst_
 @docs overLast
 @docs shuffle
 @docs splitAt
+@docs traverseMaybe
+@docs traverseRandom
 @docs uncons
 @docs unsnoc
 
@@ -184,16 +186,6 @@ mapMaybe f xs =
                     z :: zs
 
 
-mapRandom : (a -> Random b) -> List a -> Random (List b)
-mapRandom f xs0 =
-    case xs0 of
-        [] ->
-            Roots.Random.pure []
-
-        x :: xs ->
-            Roots.Random.map2 (::) (f x) (mapRandom f xs)
-
-
 modify : Int -> (a -> ( Maybe a, b )) -> List a -> ( List a, Maybe b )
 modify n f xs0 =
     case xs0 of
@@ -318,6 +310,26 @@ splitAt_ n xs0 =
                         splitAt_ (n - 1) xs
                 in
                 ( x :: ys, zs )
+
+
+traverseMaybe : (a -> Maybe b) -> List a -> Maybe (List b)
+traverseMaybe f xs0 =
+    case xs0 of
+        [] ->
+            Just []
+
+        x :: xs ->
+            Maybe.map2 (::) (f x) (traverseMaybe f xs)
+
+
+traverseRandom : (a -> Random b) -> List a -> Random (List b)
+traverseRandom f xs0 =
+    case xs0 of
+        [] ->
+            Roots.Random.pure []
+
+        x :: xs ->
+            Roots.Random.map2 (::) (f x) (traverseRandom f xs)
 
 
 {-| Break a list into its head element and tail elements.
