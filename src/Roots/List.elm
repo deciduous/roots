@@ -141,7 +141,7 @@ dropWhile f xs =
                 xs
 
 
-{-| Find the first element of a list that satisfies a predicate.
+{-| Find the first element that satisfies a predicate.
 -}
 findFirst : (a -> Maybe b) -> List a -> Maybe b
 findFirst f xs0 =

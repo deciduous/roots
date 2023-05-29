@@ -1,8 +1,8 @@
-module Roots.Array exposing (cons, dropLeft, intersperse, last, member, sample, sampleN, singleton, uncons)
+module Roots.Array exposing (cons, dropLeft, findFirst, intersperse, last, member, sample, sampleN, singleton, uncons)
 
 {-| Array.
 
-@docs cons, dropLeft, intersperse, last, member, sample, sampleN, singleton, uncons
+@docs cons, dropLeft, findFirst, intersperse, last, member, sample, sampleN, singleton, uncons
 
 -}
 
@@ -36,6 +36,34 @@ dropLeft n xs =
 
         else
             Array.slice n len xs
+
+
+{-| Find the first element that satisfies a predicate.
+-}
+findFirst : (a -> Maybe b) -> Array a -> Maybe b
+findFirst f xs =
+    let
+        len =
+            Array.length xs
+
+        go i =
+            if i >= len then
+                Nothing
+
+            else
+                case Array.get i xs of
+                    Nothing ->
+                        go (i + 1)
+
+                    Just x ->
+                        case f x of
+                            Nothing ->
+                                go (i + 1)
+
+                            Just y ->
+                                Just y
+    in
+    go 0
 
 
 intersperse : a -> Array a -> Array a
