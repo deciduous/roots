@@ -1,8 +1,8 @@
-module Roots.Array exposing (cons, dropLeft, findFirst, intersperse, last, member, sample, sampleN, singleton, uncons)
+module Roots.Array exposing (concat, cons, dropLeft, findFirst, intersperse, last, member, sample, sampleN, singleton, uncons)
 
 {-| Array.
 
-@docs cons, dropLeft, findFirst, intersperse, last, member, sample, sampleN, singleton, uncons
+@docs concat, cons, dropLeft, findFirst, intersperse, last, member, sample, sampleN, singleton, uncons
 
 -}
 
@@ -10,6 +10,13 @@ import Array exposing (Array)
 import Random
 import Roots.List as List
 import Roots.Random exposing (Random)
+
+
+{-| Concatenate an array of arrays.
+-}
+concat : Array (Array a) -> Array a
+concat =
+    Array.foldl (\xs acc -> Array.append acc xs) Array.empty
 
 
 {-| Cons an element onto the left.
