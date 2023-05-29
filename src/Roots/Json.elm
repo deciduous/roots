@@ -1,37 +1,24 @@
 module Roots.Json exposing
-    ( Codec
-    , Decoder
-    , Error
-    , Value
-    , VariantCodec
-    , array
-    , bool
-    , float
-    , int
-    , list
-    , object0
-    , object11
-    , object2
-    , object4
-    , object5
-    , object6
-    , object7
-    , object8
-    , object9
-    , objectVariantCodec
-    , string
-    , toDecoder
-    , toString
-    , toValue
+    ( Codec, toDecoder, toString, toValue
+    , Decoder, Error, Value
+    , bool, int, float, string
     , tuple2
-    , variant2
-    , variant3
+    , list, array
+    , object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
+    , VariantCodec, objectVariantCodec
+    , variant2, variant3
     )
 
 {-| Json.
 
-@docs Codec Decoder Error Value VariantCodec
-@docs array bool float int list object0 object2 object4 object5 object6 object7 object8 object9 objectVariantCodec string toDecoder toString toValue tuple2 variant2 variant3
+@docs Codec, toDecoder, toString, toValue
+@docs Decoder, Error, Value
+@docs bool, int, float, string
+@docs tuple2
+@docs list, array
+@docs object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
+@docs VariantCodec, objectVariantCodec
+@docs variant2, variant3
 
 -}
 
@@ -108,22 +95,6 @@ string =
         }
 
 
-array : Codec a -> Codec (Array a)
-array (Codec codec) =
-    Codec
-        { decoder = Json.Decode.array codec.decoder
-        , encoder = Json.Encode.array codec.encoder
-        }
-
-
-list : Codec a -> Codec (List a)
-list (Codec codec) =
-    Codec
-        { decoder = Json.Decode.list codec.decoder
-        , encoder = Json.Encode.list codec.encoder
-        }
-
-
 tuple2 : Codec a -> Codec b -> Codec ( a, b )
 tuple2 (Codec ca) (Codec cb) =
     Codec
@@ -147,11 +118,35 @@ tuple2 (Codec ca) (Codec cb) =
         }
 
 
+list : Codec a -> Codec (List a)
+list (Codec codec) =
+    Codec
+        { decoder = Json.Decode.list codec.decoder
+        , encoder = Json.Encode.list codec.encoder
+        }
+
+
+array : Codec a -> Codec (Array a)
+array (Codec codec) =
+    Codec
+        { decoder = Json.Decode.array codec.decoder
+        , encoder = Json.Encode.array codec.encoder
+        }
+
+
 object0 : Codec ()
 object0 =
     Codec
         { decoder = Json.Decode.succeed ()
         , encoder = \_ -> Json.Encode.object []
+        }
+
+
+object1 : (a -> b) -> (b -> a) -> ( String, Codec a ) -> Codec b
+object1 f0 f1 ( ka, Codec ca ) =
+    Codec
+        { decoder = Json.Decode.map f0 (Json.Decode.field ka ca.decoder)
+        , encoder = \b -> Json.Encode.object [ ( ka, ca.encoder (f1 b) ) ]
         }
 
 
@@ -166,6 +161,35 @@ object2 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) =
                         f1 c
                 in
                 Json.Encode.object [ ( ka, ca.encoder a ), ( kb, cb.encoder b ) ]
+        }
+
+
+object3 :
+    (a -> b -> c -> d)
+    -> (d -> ( a, b, c ))
+    -> ( String, Codec a )
+    -> ( String, Codec b )
+    -> ( String, Codec c )
+    -> Codec d
+object3 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) =
+    Codec
+        { decoder =
+            Json.Decode.map3
+                f0
+                (Json.Decode.field ka ca.decoder)
+                (Json.Decode.field kb cb.decoder)
+                (Json.Decode.field kc cc.decoder)
+        , encoder =
+            \d ->
+                let
+                    ( a, b, c ) =
+                        f1 d
+                in
+                Json.Encode.object
+                    [ ( ka, ca.encoder a )
+                    , ( kb, cb.encoder b )
+                    , ( kc, cc.encoder c )
+                    ]
         }
 
 
@@ -393,6 +417,56 @@ object9 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd 
                             , ( kg, cg.encoder g )
                             , ( kh, ch.encoder h )
                             , ( ki, ci.encoder i )
+                            ]
+        }
+
+
+object10 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k)
+    -> (k -> T10 a b c d e f g h i j)
+    -> ( String, Codec a )
+    -> ( String, Codec b )
+    -> ( String, Codec c )
+    -> ( String, Codec d )
+    -> ( String, Codec e )
+    -> ( String, Codec f )
+    -> ( String, Codec g )
+    -> ( String, Codec h )
+    -> ( String, Codec i )
+    -> ( String, Codec j )
+    -> Codec k
+object10 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) ( kg, Codec cg ) ( kh, Codec ch ) ( ki, Codec ci ) ( kj, Codec cj ) =
+    Codec
+        { decoder =
+            Json.Decode.map8
+                (\a b c d e f g ( h, i, j ) -> f0 a b c d e f g h i j)
+                (Json.Decode.field ka ca.decoder)
+                (Json.Decode.field kb cb.decoder)
+                (Json.Decode.field kc cc.decoder)
+                (Json.Decode.field kd cd.decoder)
+                (Json.Decode.field ke ce.decoder)
+                (Json.Decode.field kf cf.decoder)
+                (Json.Decode.field kg cg.decoder)
+                (Json.Decode.map3 (\h i j -> ( h, i, j ))
+                    (Json.Decode.field kh ch.decoder)
+                    (Json.Decode.field ki ci.decoder)
+                    (Json.Decode.field kj cj.decoder)
+                )
+        , encoder =
+            \k ->
+                case f1 k of
+                    T10 a b c d e f g h i j ->
+                        Json.Encode.object
+                            [ ( ka, ca.encoder a )
+                            , ( kb, cb.encoder b )
+                            , ( kc, cc.encoder c )
+                            , ( kd, cd.encoder d )
+                            , ( ke, ce.encoder e )
+                            , ( kf, cf.encoder f )
+                            , ( kg, cg.encoder g )
+                            , ( kh, ch.encoder h )
+                            , ( ki, ci.encoder i )
+                            , ( kj, cj.encoder j )
                             ]
         }
 
