@@ -1,16 +1,8 @@
-module Roots.Array exposing
-    ( cons
-    , intersperse
-    , last
-    , member
-    , sample
-    , sampleN
-    , singleton
-    )
+module Roots.Array exposing (cons, dropLeft, intersperse, last, member, sample, sampleN, singleton, uncons)
 
 {-| Array.
 
-@docs cons intersperse last member sample sampleN singleton
+@docs cons, dropLeft, intersperse, last, member, sample, sampleN, singleton, uncons
 
 -}
 
@@ -20,9 +12,30 @@ import Roots.List as List
 import Roots.Random exposing (Random)
 
 
+{-| Cons an element onto the left.
+-}
 cons : a -> Array a -> Array a
 cons x =
     Array.append (singleton x)
+
+
+{-| Drop elements from the left.
+-}
+dropLeft : Int -> Array a -> Array a
+dropLeft n xs =
+    if n <= 0 then
+        xs
+
+    else
+        let
+            len =
+                Array.length xs
+        in
+        if n >= len then
+            Array.empty
+
+        else
+            Array.slice n len xs
 
 
 intersperse : a -> Array a -> Array a
@@ -53,6 +66,8 @@ member x xs =
     loop 0
 
 
+{-| Sample an element, or return a default element if the array is empty.
+-}
 sample : a -> Array a -> Random a
 sample x0 xs =
     if Array.length xs == 0 then
@@ -80,6 +95,13 @@ sampleN n =
     Array.toList >> List.shuffle >> Roots.Random.map (List.take n)
 
 
+{-| Make a one-element array.
+-}
 singleton : a -> Array a
 singleton x =
     Array.initialize 1 (\_ -> x)
+
+
+uncons : Array a -> Maybe ( a, Array a )
+uncons xs =
+    Maybe.map (\x -> ( x, dropLeft 1 xs )) (Array.get 0 xs)
