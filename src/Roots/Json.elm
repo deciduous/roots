@@ -4,6 +4,7 @@ module Roots.Json exposing
     , bool, int, float, string
     , tuple2
     , list, array
+    , PropertyCodec, property, maybeProperty
     , object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
     , VariantCodec, objectVariantCodec
     , variant2, variant3
@@ -16,6 +17,7 @@ module Roots.Json exposing
 @docs bool, int, float, string
 @docs tuple2
 @docs list, array
+@docs PropertyCodec, property, maybeProperty
 @docs object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
 @docs VariantCodec, objectVariantCodec
 @docs variant2, variant3
@@ -26,6 +28,7 @@ import Array
 import Json.Decode
 import Json.Encode
 import Roots exposing (..)
+import Roots.List as List
 import Roots.Prism as Prism exposing (Prism)
 
 
@@ -134,6 +137,26 @@ array (Codec codec) =
         }
 
 
+type alias PropertyCodec a =
+    { decoder : Decoder a
+    , encoder : a -> Maybe ( String, Value )
+    }
+
+
+property : String -> Codec a -> PropertyCodec a
+property key (Codec codec) =
+    { decoder = Json.Decode.field key codec.decoder
+    , encoder = \x -> Just ( key, codec.encoder x )
+    }
+
+
+maybeProperty : String -> Codec a -> PropertyCodec (Maybe a)
+maybeProperty key (Codec codec) =
+    { decoder = Json.Decode.maybe (Json.Decode.field key codec.decoder)
+    , encoder = Maybe.map (\x -> ( key, codec.encoder x ))
+    }
+
+
 object0 : Codec ()
 object0 =
     Codec
@@ -142,385 +165,333 @@ object0 =
         }
 
 
-object1 : (a -> b) -> (b -> a) -> ( String, Codec a ) -> Codec b
-object1 f0 f1 ( ka, Codec ca ) =
+object1 : (a -> b) -> (b -> a) -> PropertyCodec a -> Codec b
+object1 f0 f1 pa =
     Codec
-        { decoder = Json.Decode.map f0 (Json.Decode.field ka ca.decoder)
-        , encoder = \b -> Json.Encode.object [ ( ka, ca.encoder (f1 b) ) ]
+        { decoder = Json.Decode.map f0 pa.decoder
+        , encoder = \b -> Json.Encode.object (List.catMaybes [ pa.encoder (f1 b) ])
         }
 
 
-object2 : (a -> b -> c) -> (c -> ( a, b )) -> ( String, Codec a ) -> ( String, Codec b ) -> Codec c
-object2 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) =
+object2 : (a -> b -> c) -> (c -> ( a, b )) -> PropertyCodec a -> PropertyCodec b -> Codec c
+object2 f0 f1 pa pb =
     Codec
-        { decoder = Json.Decode.map2 f0 (Json.Decode.field ka ca.decoder) (Json.Decode.field kb cb.decoder)
+        { decoder = Json.Decode.map2 f0 pa.decoder pb.decoder
         , encoder =
             \c ->
                 let
                     ( a, b ) =
                         f1 c
                 in
-                Json.Encode.object [ ( ka, ca.encoder a ), ( kb, cb.encoder b ) ]
+                Json.Encode.object (List.catMaybes [ pa.encoder a, pb.encoder b ])
         }
 
 
 object3 :
     (a -> b -> c -> d)
     -> (d -> ( a, b, c ))
-    -> ( String, Codec a )
-    -> ( String, Codec b )
-    -> ( String, Codec c )
+    -> PropertyCodec a
+    -> PropertyCodec b
+    -> PropertyCodec c
     -> Codec d
-object3 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) =
+object3 f0 f1 pa pb pc =
     Codec
-        { decoder =
-            Json.Decode.map3
-                f0
-                (Json.Decode.field ka ca.decoder)
-                (Json.Decode.field kb cb.decoder)
-                (Json.Decode.field kc cc.decoder)
+        { decoder = Json.Decode.map3 f0 pa.decoder pb.decoder pc.decoder
         , encoder =
             \d ->
                 let
                     ( a, b, c ) =
                         f1 d
                 in
-                Json.Encode.object
-                    [ ( ka, ca.encoder a )
-                    , ( kb, cb.encoder b )
-                    , ( kc, cc.encoder c )
-                    ]
+                Json.Encode.object (List.catMaybes [ pa.encoder a, pb.encoder b, pc.encoder c ])
         }
 
 
 object4 :
     (a -> b -> c -> d -> e)
     -> (e -> T4 a b c d)
-    -> ( String, Codec a )
-    -> ( String, Codec b )
-    -> ( String, Codec c )
-    -> ( String, Codec d )
+    -> PropertyCodec a
+    -> PropertyCodec b
+    -> PropertyCodec c
+    -> PropertyCodec d
     -> Codec e
-object4 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) =
+object4 f0 f1 pa pb pc pd =
     Codec
-        { decoder =
-            Json.Decode.map4
-                f0
-                (Json.Decode.field ka ca.decoder)
-                (Json.Decode.field kb cb.decoder)
-                (Json.Decode.field kc cc.decoder)
-                (Json.Decode.field kd cd.decoder)
+        { decoder = Json.Decode.map4 f0 pa.decoder pb.decoder pc.decoder pd.decoder
         , encoder =
             \e ->
                 case f1 e of
                     T4 a b c d ->
-                        Json.Encode.object
-                            [ ( ka, ca.encoder a )
-                            , ( kb, cb.encoder b )
-                            , ( kc, cc.encoder c )
-                            , ( kd, cd.encoder d )
-                            ]
+                        Json.Encode.object (List.catMaybes [ pa.encoder a, pb.encoder b, pc.encoder c, pd.encoder d ])
         }
 
 
 object5 :
     (a -> b -> c -> d -> e -> f)
     -> (f -> T5 a b c d e)
-    -> ( String, Codec a )
-    -> ( String, Codec b )
-    -> ( String, Codec c )
-    -> ( String, Codec d )
-    -> ( String, Codec e )
+    -> PropertyCodec a
+    -> PropertyCodec b
+    -> PropertyCodec c
+    -> PropertyCodec d
+    -> PropertyCodec e
     -> Codec f
-object5 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) =
+object5 f0 f1 pa pb pc pd pe =
     Codec
-        { decoder =
-            Json.Decode.map5
-                f0
-                (Json.Decode.field ka ca.decoder)
-                (Json.Decode.field kb cb.decoder)
-                (Json.Decode.field kc cc.decoder)
-                (Json.Decode.field kd cd.decoder)
-                (Json.Decode.field ke ce.decoder)
+        { decoder = Json.Decode.map5 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder
         , encoder =
             \f ->
                 case f1 f of
                     T5 a b c d e ->
                         Json.Encode.object
-                            [ ( ka, ca.encoder a )
-                            , ( kb, cb.encoder b )
-                            , ( kc, cc.encoder c )
-                            , ( kd, cd.encoder d )
-                            , ( ke, ce.encoder e )
-                            ]
+                            (List.catMaybes
+                                [ pa.encoder a
+                                , pb.encoder b
+                                , pc.encoder c
+                                , pd.encoder d
+                                , pe.encoder e
+                                ]
+                            )
         }
 
 
 object6 :
     (a -> b -> c -> d -> e -> f -> g)
     -> (g -> T6 a b c d e f)
-    -> ( String, Codec a )
-    -> ( String, Codec b )
-    -> ( String, Codec c )
-    -> ( String, Codec d )
-    -> ( String, Codec e )
-    -> ( String, Codec f )
+    -> PropertyCodec a
+    -> PropertyCodec b
+    -> PropertyCodec c
+    -> PropertyCodec d
+    -> PropertyCodec e
+    -> PropertyCodec f
     -> Codec g
-object6 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) =
+object6 f0 f1 pa pb pc pd pe pf =
     Codec
-        { decoder =
-            Json.Decode.map6
-                f0
-                (Json.Decode.field ka ca.decoder)
-                (Json.Decode.field kb cb.decoder)
-                (Json.Decode.field kc cc.decoder)
-                (Json.Decode.field kd cd.decoder)
-                (Json.Decode.field ke ce.decoder)
-                (Json.Decode.field kf cf.decoder)
+        { decoder = Json.Decode.map6 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder
         , encoder =
             \g ->
                 case f1 g of
                     T6 a b c d e f ->
                         Json.Encode.object
-                            [ ( ka, ca.encoder a )
-                            , ( kb, cb.encoder b )
-                            , ( kc, cc.encoder c )
-                            , ( kd, cd.encoder d )
-                            , ( ke, ce.encoder e )
-                            , ( kf, cf.encoder f )
-                            ]
+                            (List.catMaybes
+                                [ pa.encoder a
+                                , pb.encoder b
+                                , pc.encoder c
+                                , pd.encoder d
+                                , pe.encoder e
+                                , pf.encoder f
+                                ]
+                            )
         }
 
 
 object7 :
     (a -> b -> c -> d -> e -> f -> g -> h)
     -> (h -> T7 a b c d e f g)
-    -> ( String, Codec a )
-    -> ( String, Codec b )
-    -> ( String, Codec c )
-    -> ( String, Codec d )
-    -> ( String, Codec e )
-    -> ( String, Codec f )
-    -> ( String, Codec g )
+    -> PropertyCodec a
+    -> PropertyCodec b
+    -> PropertyCodec c
+    -> PropertyCodec d
+    -> PropertyCodec e
+    -> PropertyCodec f
+    -> PropertyCodec g
     -> Codec h
-object7 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) ( kg, Codec cg ) =
+object7 f0 f1 pa pb pc pd pe pf pg =
     Codec
-        { decoder =
-            Json.Decode.map7
-                f0
-                (Json.Decode.field ka ca.decoder)
-                (Json.Decode.field kb cb.decoder)
-                (Json.Decode.field kc cc.decoder)
-                (Json.Decode.field kd cd.decoder)
-                (Json.Decode.field ke ce.decoder)
-                (Json.Decode.field kf cf.decoder)
-                (Json.Decode.field kg cg.decoder)
+        { decoder = Json.Decode.map7 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder pg.decoder
         , encoder =
             \h ->
                 case f1 h of
                     T7 a b c d e f g ->
                         Json.Encode.object
-                            [ ( ka, ca.encoder a )
-                            , ( kb, cb.encoder b )
-                            , ( kc, cc.encoder c )
-                            , ( kd, cd.encoder d )
-                            , ( ke, ce.encoder e )
-                            , ( kf, cf.encoder f )
-                            , ( kg, cg.encoder g )
-                            ]
+                            (List.catMaybes
+                                [ pa.encoder a
+                                , pb.encoder b
+                                , pc.encoder c
+                                , pd.encoder d
+                                , pe.encoder e
+                                , pf.encoder f
+                                , pg.encoder g
+                                ]
+                            )
         }
 
 
 object8 :
     (a -> b -> c -> d -> e -> f -> g -> h -> i)
     -> (i -> T8 a b c d e f g h)
-    -> ( String, Codec a )
-    -> ( String, Codec b )
-    -> ( String, Codec c )
-    -> ( String, Codec d )
-    -> ( String, Codec e )
-    -> ( String, Codec f )
-    -> ( String, Codec g )
-    -> ( String, Codec h )
+    -> PropertyCodec a
+    -> PropertyCodec b
+    -> PropertyCodec c
+    -> PropertyCodec d
+    -> PropertyCodec e
+    -> PropertyCodec f
+    -> PropertyCodec g
+    -> PropertyCodec h
     -> Codec i
-object8 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) ( kg, Codec cg ) ( kh, Codec ch ) =
+object8 f0 f1 pa pb pc pd pe pf pg ph =
     Codec
         { decoder =
-            Json.Decode.map8
-                f0
-                (Json.Decode.field ka ca.decoder)
-                (Json.Decode.field kb cb.decoder)
-                (Json.Decode.field kc cc.decoder)
-                (Json.Decode.field kd cd.decoder)
-                (Json.Decode.field ke ce.decoder)
-                (Json.Decode.field kf cf.decoder)
-                (Json.Decode.field kg cg.decoder)
-                (Json.Decode.field kh ch.decoder)
+            Json.Decode.map8 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder pg.decoder ph.decoder
         , encoder =
             \i ->
                 case f1 i of
                     T8 a b c d e f g h ->
                         Json.Encode.object
-                            [ ( ka, ca.encoder a )
-                            , ( kb, cb.encoder b )
-                            , ( kc, cc.encoder c )
-                            , ( kd, cd.encoder d )
-                            , ( ke, ce.encoder e )
-                            , ( kf, cf.encoder f )
-                            , ( kg, cg.encoder g )
-                            , ( kh, ch.encoder h )
-                            ]
+                            (List.catMaybes
+                                [ pa.encoder a
+                                , pb.encoder b
+                                , pc.encoder c
+                                , pd.encoder d
+                                , pe.encoder e
+                                , pf.encoder f
+                                , pg.encoder g
+                                , ph.encoder h
+                                ]
+                            )
         }
 
 
 object9 :
     (a -> b -> c -> d -> e -> f -> g -> h -> i -> j)
     -> (j -> T9 a b c d e f g h i)
-    -> ( String, Codec a )
-    -> ( String, Codec b )
-    -> ( String, Codec c )
-    -> ( String, Codec d )
-    -> ( String, Codec e )
-    -> ( String, Codec f )
-    -> ( String, Codec g )
-    -> ( String, Codec h )
-    -> ( String, Codec i )
+    -> PropertyCodec a
+    -> PropertyCodec b
+    -> PropertyCodec c
+    -> PropertyCodec d
+    -> PropertyCodec e
+    -> PropertyCodec f
+    -> PropertyCodec g
+    -> PropertyCodec h
+    -> PropertyCodec i
     -> Codec j
-object9 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) ( kg, Codec cg ) ( kh, Codec ch ) ( ki, Codec ci ) =
+object9 f0 f1 pa pb pc pd pe pf pg ph pi =
     Codec
         { decoder =
             Json.Decode.map8
                 (\a b c d e f g ( h, i ) -> f0 a b c d e f g h i)
-                (Json.Decode.field ka ca.decoder)
-                (Json.Decode.field kb cb.decoder)
-                (Json.Decode.field kc cc.decoder)
-                (Json.Decode.field kd cd.decoder)
-                (Json.Decode.field ke ce.decoder)
-                (Json.Decode.field kf cf.decoder)
-                (Json.Decode.field kg cg.decoder)
-                (Json.Decode.map2
-                    (\h i -> ( h, i ))
-                    (Json.Decode.field kh ch.decoder)
-                    (Json.Decode.field ki ci.decoder)
-                )
+                pa.decoder
+                pb.decoder
+                pc.decoder
+                pd.decoder
+                pe.decoder
+                pf.decoder
+                pg.decoder
+                (Json.Decode.map2 (\h i -> ( h, i )) ph.decoder pi.decoder)
         , encoder =
             \j ->
                 case f1 j of
                     T9 a b c d e f g h i ->
                         Json.Encode.object
-                            [ ( ka, ca.encoder a )
-                            , ( kb, cb.encoder b )
-                            , ( kc, cc.encoder c )
-                            , ( kd, cd.encoder d )
-                            , ( ke, ce.encoder e )
-                            , ( kf, cf.encoder f )
-                            , ( kg, cg.encoder g )
-                            , ( kh, ch.encoder h )
-                            , ( ki, ci.encoder i )
-                            ]
+                            (List.catMaybes
+                                [ pa.encoder a
+                                , pb.encoder b
+                                , pc.encoder c
+                                , pd.encoder d
+                                , pe.encoder e
+                                , pf.encoder f
+                                , pg.encoder g
+                                , ph.encoder h
+                                , pi.encoder i
+                                ]
+                            )
         }
 
 
 object10 :
     (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k)
     -> (k -> T10 a b c d e f g h i j)
-    -> ( String, Codec a )
-    -> ( String, Codec b )
-    -> ( String, Codec c )
-    -> ( String, Codec d )
-    -> ( String, Codec e )
-    -> ( String, Codec f )
-    -> ( String, Codec g )
-    -> ( String, Codec h )
-    -> ( String, Codec i )
-    -> ( String, Codec j )
+    -> PropertyCodec a
+    -> PropertyCodec b
+    -> PropertyCodec c
+    -> PropertyCodec d
+    -> PropertyCodec e
+    -> PropertyCodec f
+    -> PropertyCodec g
+    -> PropertyCodec h
+    -> PropertyCodec i
+    -> PropertyCodec j
     -> Codec k
-object10 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) ( kg, Codec cg ) ( kh, Codec ch ) ( ki, Codec ci ) ( kj, Codec cj ) =
+object10 f0 f1 pa pb pc pd pe pf pg ph pi pj =
     Codec
         { decoder =
             Json.Decode.map8
                 (\a b c d e f g ( h, i, j ) -> f0 a b c d e f g h i j)
-                (Json.Decode.field ka ca.decoder)
-                (Json.Decode.field kb cb.decoder)
-                (Json.Decode.field kc cc.decoder)
-                (Json.Decode.field kd cd.decoder)
-                (Json.Decode.field ke ce.decoder)
-                (Json.Decode.field kf cf.decoder)
-                (Json.Decode.field kg cg.decoder)
-                (Json.Decode.map3 (\h i j -> ( h, i, j ))
-                    (Json.Decode.field kh ch.decoder)
-                    (Json.Decode.field ki ci.decoder)
-                    (Json.Decode.field kj cj.decoder)
-                )
+                pa.decoder
+                pb.decoder
+                pc.decoder
+                pd.decoder
+                pe.decoder
+                pf.decoder
+                pg.decoder
+                (Json.Decode.map3 (\h i j -> ( h, i, j )) ph.decoder pi.decoder pj.decoder)
         , encoder =
             \k ->
                 case f1 k of
                     T10 a b c d e f g h i j ->
                         Json.Encode.object
-                            [ ( ka, ca.encoder a )
-                            , ( kb, cb.encoder b )
-                            , ( kc, cc.encoder c )
-                            , ( kd, cd.encoder d )
-                            , ( ke, ce.encoder e )
-                            , ( kf, cf.encoder f )
-                            , ( kg, cg.encoder g )
-                            , ( kh, ch.encoder h )
-                            , ( ki, ci.encoder i )
-                            , ( kj, cj.encoder j )
-                            ]
+                            (List.catMaybes
+                                [ pa.encoder a
+                                , pb.encoder b
+                                , pc.encoder c
+                                , pd.encoder d
+                                , pe.encoder e
+                                , pf.encoder f
+                                , pg.encoder g
+                                , ph.encoder h
+                                , pi.encoder i
+                                , pj.encoder j
+                                ]
+                            )
         }
 
 
 object11 :
     (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> l)
     -> (l -> T11 a b c d e f g h i j k)
-    -> ( String, Codec a )
-    -> ( String, Codec b )
-    -> ( String, Codec c )
-    -> ( String, Codec d )
-    -> ( String, Codec e )
-    -> ( String, Codec f )
-    -> ( String, Codec g )
-    -> ( String, Codec h )
-    -> ( String, Codec i )
-    -> ( String, Codec j )
-    -> ( String, Codec k )
+    -> PropertyCodec a
+    -> PropertyCodec b
+    -> PropertyCodec c
+    -> PropertyCodec d
+    -> PropertyCodec e
+    -> PropertyCodec f
+    -> PropertyCodec g
+    -> PropertyCodec h
+    -> PropertyCodec i
+    -> PropertyCodec j
+    -> PropertyCodec k
     -> Codec l
-object11 f0 f1 ( ka, Codec ca ) ( kb, Codec cb ) ( kc, Codec cc ) ( kd, Codec cd ) ( ke, Codec ce ) ( kf, Codec cf ) ( kg, Codec cg ) ( kh, Codec ch ) ( ki, Codec ci ) ( kj, Codec cj ) ( kk, Codec ck ) =
+object11 f0 f1 pa pb pc pd pe pf pg ph pi pj pk =
     Codec
         { decoder =
             Json.Decode.map8
                 (\a b c d e f g (T4 h i j k) -> f0 a b c d e f g h i j k)
-                (Json.Decode.field ka ca.decoder)
-                (Json.Decode.field kb cb.decoder)
-                (Json.Decode.field kc cc.decoder)
-                (Json.Decode.field kd cd.decoder)
-                (Json.Decode.field ke ce.decoder)
-                (Json.Decode.field kf cf.decoder)
-                (Json.Decode.field kg cg.decoder)
-                (Json.Decode.map4 T4
-                    (Json.Decode.field kh ch.decoder)
-                    (Json.Decode.field ki ci.decoder)
-                    (Json.Decode.field kj cj.decoder)
-                    (Json.Decode.field kk ck.decoder)
-                )
+                pa.decoder
+                pb.decoder
+                pc.decoder
+                pd.decoder
+                pe.decoder
+                pf.decoder
+                pg.decoder
+                (Json.Decode.map4 T4 ph.decoder pi.decoder pj.decoder pk.decoder)
         , encoder =
             \l ->
                 case f1 l of
                     T11 a b c d e f g h i j k ->
                         Json.Encode.object
-                            [ ( ka, ca.encoder a )
-                            , ( kb, cb.encoder b )
-                            , ( kc, cc.encoder c )
-                            , ( kd, cd.encoder d )
-                            , ( ke, ce.encoder e )
-                            , ( kf, cf.encoder f )
-                            , ( kg, cg.encoder g )
-                            , ( kh, ch.encoder h )
-                            , ( ki, ci.encoder i )
-                            , ( kj, cj.encoder j )
-                            , ( kk, ck.encoder k )
-                            ]
+                            (List.catMaybes
+                                [ pa.encoder a
+                                , pb.encoder b
+                                , pc.encoder c
+                                , pd.encoder d
+                                , pe.encoder e
+                                , pf.encoder f
+                                , pg.encoder g
+                                , ph.encoder h
+                                , pi.encoder i
+                                , pj.encoder j
+                                , pk.encoder k
+                                ]
+                            )
         }
 
 

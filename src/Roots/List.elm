@@ -1,6 +1,7 @@
 module Roots.List exposing
     ( Modification(..)
     , asSingleton
+    , catMaybes
     , chunk
     , deleteFirst
     , dropWhile
@@ -26,6 +27,7 @@ module Roots.List exposing
 
 @docs Modification
 @docs asSingleton
+@docs catMaybes
 @docs chunk
 @docs deleteFirst
 @docs dropWhile
@@ -64,6 +66,22 @@ asSingleton xs =
 
         _ ->
             Nothing
+
+
+{-| Filter out @Nothing@ values.
+-}
+catMaybes : List (Maybe a) -> List a
+catMaybes =
+    List.foldr
+        (\mx acc ->
+            case mx of
+                Nothing ->
+                    acc
+
+                Just x ->
+                    x :: acc
+        )
+        []
 
 
 {-| Break a list into chunks.

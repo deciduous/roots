@@ -971,17 +971,17 @@ touchDecoder =
         (Json.object11
             fromTuple
             toTuple
-            ( "clientX", Json.float )
-            ( "clientY", Json.float )
-            ( "force", Json.float )
-            ( "identifier", Json.int )
-            ( "pageX", Json.float )
-            ( "pageY", Json.float )
-            ( "radiusX", Json.float )
-            ( "radiusY", Json.float )
-            ( "rotationAngle", Json.float )
-            ( "screenX", Json.int )
-            ( "screenY", Json.int )
+            (Json.property "clientX" Json.float)
+            (Json.property "clientY" Json.float)
+            (Json.property "force" Json.float)
+            (Json.property "identifier" Json.int)
+            (Json.property "pageX" Json.float)
+            (Json.property "pageY" Json.float)
+            (Json.property "radiusX" Json.float)
+            (Json.property "radiusY" Json.float)
+            (Json.property "rotationAngle" Json.float)
+            (Json.property "screenX" Json.int)
+            (Json.property "screenY" Json.int)
         )
 
 
