@@ -4,7 +4,7 @@ module Roots.Array exposing
     , dropLeft, dropRight
     , member, findFirst
     , concat, intersperse
-    , sample, sampleN
+    , sample, sampleN, shuffle
     )
 
 {-| Array.
@@ -14,7 +14,7 @@ module Roots.Array exposing
 @docs dropLeft, dropRight
 @docs member, findFirst
 @docs concat, intersperse
-@docs sample, sampleN
+@docs sample, sampleN, shuffle
 
 -}
 
@@ -161,6 +161,13 @@ sampleN n =
 singleton : a -> Array a
 singleton x =
     Array.initialize 1 (\_ -> x)
+
+
+{-| Shuffle.
+-}
+shuffle : Array a -> Random (Array a)
+shuffle =
+    Array.toList >> List.shuffle >> Roots.Random.map Array.fromList
 
 
 uncons : Array a -> Maybe ( a, Array a )

@@ -294,14 +294,14 @@ overLast f xs0 =
             x :: overLast f xs
 
 
-{-| Shuffle a list.
+{-| Shuffle.
 -}
 shuffle : List a -> Random (List a)
-shuffle xs =
-    Random.step (Random.List.shuffle xs)
+shuffle =
+    Random.List.shuffle >> Random.step
 
 
-{-| Split a list at an index.
+{-| Split at an index.
 -}
 splitAt : Int -> List a -> ( List a, List a )
 splitAt n xs =
@@ -350,7 +350,7 @@ traverseRandom f xs0 =
             Roots.Random.map2 (::) (f x) (traverseRandom f xs)
 
 
-{-| Break a list into its head element and tail elements.
+{-| Break into head element and tail elements.
 -}
 uncons : List a -> Maybe ( a, List a )
 uncons xs =
@@ -362,7 +362,7 @@ uncons xs =
             Just ( y, ys )
 
 
-{-| Break a list into its initial elements and last element.
+{-| Break into initial elements and last element.
 -}
 unsnoc : List a -> Maybe ( List a, a )
 unsnoc xs =
