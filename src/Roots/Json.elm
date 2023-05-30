@@ -7,7 +7,7 @@ module Roots.Json exposing
     , PropertyCodec, property, maybeProperty
     , object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
     , VariantCodec, objectVariantCodec
-    , variant2, variant3
+    , variant2, variant3, variant4
     )
 
 {-| Json.
@@ -20,7 +20,7 @@ module Roots.Json exposing
 @docs PropertyCodec, property, maybeProperty
 @docs object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
 @docs VariantCodec, objectVariantCodec
-@docs variant2, variant3
+@docs variant2, variant3, variant4
 
 -}
 
@@ -601,4 +601,61 @@ variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec 
 
                                     Nothing ->
                                         Json.Encode.null
+        }
+
+
+variant4 :
+    VariantCodec t e
+    -> ( t, Prism e a, Codec a )
+    -> ( t, Prism e b, Codec b )
+    -> ( t, Prism e c, Codec c )
+    -> ( t, Prism e d, Codec d )
+    -> (t -> String)
+    -> Codec e
+variant4 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) ( t3, p3, Codec c3 ) unrecognized =
+    Codec
+        { decoder =
+            variantCodec.typeDecoder
+                |> Json.Decode.andThen
+                    (\typ ->
+                        variantCodec.valueDecoder
+                            (if typ == t0 then
+                                Json.Decode.map (Prism.review p0) c0.decoder
+
+                             else if typ == t1 then
+                                Json.Decode.map (Prism.review p1) c1.decoder
+
+                             else if typ == t2 then
+                                Json.Decode.map (Prism.review p2) c2.decoder
+
+                             else if typ == t3 then
+                                Json.Decode.map (Prism.review p3) c3.decoder
+
+                             else
+                                Json.Decode.fail (unrecognized typ)
+                            )
+                    )
+        , encoder =
+            \value ->
+                case Prism.preview p0 value of
+                    Just inner ->
+                        variantCodec.encoder t0 (c0.encoder inner)
+
+                    Nothing ->
+                        case Prism.preview p1 value of
+                            Just inner ->
+                                variantCodec.encoder t1 (c1.encoder inner)
+
+                            Nothing ->
+                                case Prism.preview p2 value of
+                                    Just inner ->
+                                        variantCodec.encoder t2 (c2.encoder inner)
+
+                                    Nothing ->
+                                        case Prism.preview p3 value of
+                                            Just inner ->
+                                                variantCodec.encoder t3 (c3.encoder inner)
+
+                                            Nothing ->
+                                                Json.Encode.null
         }
