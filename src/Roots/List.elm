@@ -3,6 +3,7 @@ module Roots.List exposing
     , asSingleton
     , catMaybes
     , chunk
+    , cons
     , deleteFirst
     , dropWhile
     , findFirst
@@ -29,6 +30,7 @@ module Roots.List exposing
 @docs asSingleton
 @docs catMaybes
 @docs chunk
+@docs cons
 @docs deleteFirst
 @docs dropWhile
 @docs findFirst
@@ -103,6 +105,13 @@ chunk_ n xs =
 
         ( ys, zs ) ->
             ys :: chunk_ n zs
+
+
+{-| Cons an element.
+-}
+cons : a -> List a -> List a
+cons =
+    (::)
 
 
 {-| Delete the first occurrence of an element in a list.
