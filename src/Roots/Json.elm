@@ -1,7 +1,7 @@
 module Roots.Json exposing
     ( Codec, toDecoder, toString, toValue
     , Decoder, Error, Value
-    , bool, int, float, string
+    , bool, int, float, string, null
     , tuple2
     , list, array
     , PropertyCodec, property, maybeProperty
@@ -14,7 +14,7 @@ module Roots.Json exposing
 
 @docs Codec, toDecoder, toString, toValue
 @docs Decoder, Error, Value
-@docs bool, int, float, string
+@docs bool, int, float, string, null
 @docs tuple2
 @docs list, array
 @docs PropertyCodec, property, maybeProperty
@@ -95,6 +95,14 @@ string =
     Codec
         { decoder = Json.Decode.string
         , encoder = Json.Encode.string
+        }
+
+
+null : Codec ()
+null =
+    Codec
+        { decoder = Json.Decode.null ()
+        , encoder = \_ -> Json.Encode.null
         }
 
 
