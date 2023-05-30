@@ -1,8 +1,20 @@
-module Roots.Array exposing (concat, cons, dropLeft, findFirst, intersperse, last, member, sample, sampleN, singleton, uncons)
+module Roots.Array exposing
+    ( singleton, cons
+    , last, uncons
+    , dropLeft, dropRight
+    , member, findFirst
+    , concat, intersperse
+    , sample, sampleN
+    )
 
 {-| Array.
 
-@docs concat, cons, dropLeft, findFirst, intersperse, last, member, sample, sampleN, singleton, uncons
+@docs singleton, cons
+@docs last, uncons
+@docs dropLeft, dropRight
+@docs member, findFirst
+@docs concat, intersperse
+@docs sample, sampleN
 
 -}
 
@@ -43,6 +55,20 @@ dropLeft n xs =
 
         else
             Array.slice n len xs
+
+
+{-| Drop elements from the right.
+-}
+dropRight : Int -> Array a -> Array a
+dropRight n xs =
+    if n <= 0 then
+        xs
+
+    else if n >= Array.length xs then
+        Array.empty
+
+    else
+        Array.slice 0 (negate n) xs
 
 
 {-| Find the first element that satisfies a predicate.
