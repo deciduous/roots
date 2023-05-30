@@ -1,8 +1,10 @@
 module Roots.Array exposing
     ( singleton, cons
     , last, uncons
-    , dropLeft, dropRight
     , member, findFirst
+    , delete
+    , dropLeft, dropRight
+    , Modification(..), modifyFirst
     , concat, intersperse
     , sample, sampleN, shuffle
     )
@@ -11,8 +13,10 @@ module Roots.Array exposing
 
 @docs singleton, cons
 @docs last, uncons
-@docs dropLeft, dropRight
 @docs member, findFirst
+@docs delete
+@docs dropLeft, dropRight
+@docs Modification, modifyFirst
 @docs concat, intersperse
 @docs sample, sampleN, shuffle
 
@@ -36,6 +40,25 @@ concat =
 cons : a -> Array a -> Array a
 cons x =
     Array.append (singleton x)
+
+
+{-| Delete an element at an index.
+-}
+delete : Int -> Array a -> Array a
+delete i xs =
+    if i < 0 then
+        xs
+
+    else
+        let
+            len =
+                Array.length xs
+        in
+        if i >= len then
+            xs
+
+        else
+            Array.append (Array.slice 0 i xs) (Array.slice (i + 1) len xs)
 
 
 {-| Drop elements from the left.
@@ -69,6 +92,35 @@ dropRight n xs =
 
     else
         Array.slice 0 (negate n) xs
+
+
+type Modification a
+    = Drop
+    | Keep a
+
+
+{-| Modify the first element of a list that matches a predicate, and return a value if the modification was made.
+-}
+modifyFirst : (a -> Maybe ( Modification a, b )) -> Array a -> ( Array a, Maybe b )
+modifyFirst f xs =
+    let
+        go i =
+            case Array.get i xs of
+                Nothing ->
+                    ( xs, Nothing )
+
+                Just x ->
+                    case f x of
+                        Nothing ->
+                            go (i + 1)
+
+                        Just ( Drop, r ) ->
+                            ( delete i xs, Just r )
+
+                        Just ( Keep y, r ) ->
+                            ( Array.set i y xs, Just r )
+    in
+    go 0
 
 
 {-| Find the first element that satisfies a predicate.
