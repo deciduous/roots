@@ -5,7 +5,7 @@ module Roots.Array exposing
     , delete
     , dropLeft, dropRight
     , Modification(..), modifyFirst
-    , concat, intersperse
+    , concatArrays, concatStrings, intersperse
     , sample, sampleN, shuffle
     )
 
@@ -17,7 +17,7 @@ module Roots.Array exposing
 @docs delete
 @docs dropLeft, dropRight
 @docs Modification, modifyFirst
-@docs concat, intersperse
+@docs concatArrays, concatStrings, intersperse
 @docs sample, sampleN, shuffle
 
 -}
@@ -30,9 +30,16 @@ import Roots.Random exposing (Random)
 
 {-| Concatenate an array of arrays.
 -}
-concat : Array (Array a) -> Array a
-concat =
+concatArrays : Array (Array a) -> Array a
+concatArrays =
     Array.foldl (\xs acc -> Array.append acc xs) Array.empty
+
+
+{-| Concatenate an array of strings.
+-}
+concatStrings : Array String -> String
+concatStrings =
+    Array.foldl (\xs acc -> String.append acc xs) ""
 
 
 {-| Cons an element onto the left.
