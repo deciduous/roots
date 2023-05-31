@@ -6,6 +6,7 @@ module Roots.Array exposing
     , dropLeft, dropRight
     , Modification(..), modifyFirst
     , concatArrays, concatStrings, intersperse
+    , sort
     , sample, sampleN, shuffle
     )
 
@@ -18,6 +19,7 @@ module Roots.Array exposing
 @docs dropLeft, dropRight
 @docs Modification, modifyFirst
 @docs concatArrays, concatStrings, intersperse
+@docs sort
 @docs sample, sampleN, shuffle
 
 -}
@@ -227,6 +229,16 @@ singleton x =
 shuffle : Array a -> Random (Array a)
 shuffle =
     Array.toList >> List.shuffle >> Roots.Random.map Array.fromList
+
+
+{-| Sort an array.
+
+Implementation note: this round-trips through the list type.
+
+-}
+sort : Array comparable -> Array comparable
+sort =
+    Array.toList >> List.sort >> Array.fromList
 
 
 uncons : Array a -> Maybe ( a, Array a )
