@@ -13,6 +13,7 @@
         "Roots.Generator",
         "Roots.Int",
         "Roots.Json",
+        "Roots.Json.Decoder",
         "Roots.List",
         "Roots.List1",
         "Roots.Maybe",

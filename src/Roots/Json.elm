@@ -4,7 +4,7 @@ module Roots.Json exposing
     , bool, int, float, string, null
     , tuple2
     , list, array
-    , PropertyCodec, property, maybeProperty
+    , PropertyCodec, property, optionalProperty
     , object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
     , VariantCodec, objectVariantCodec
     , variant2, variant3, variant4
@@ -17,7 +17,7 @@ module Roots.Json exposing
 @docs bool, int, float, string, null
 @docs tuple2
 @docs list, array
-@docs PropertyCodec, property, maybeProperty
+@docs PropertyCodec, property, optionalProperty
 @docs object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
 @docs VariantCodec, objectVariantCodec
 @docs variant2, variant3, variant4
@@ -28,6 +28,7 @@ import Array
 import Json.Decode
 import Json.Encode
 import Roots exposing (..)
+import Roots.Json.Decoder exposing (PropertyDecoder, VariantDecoder)
 import Roots.List as List
 import Roots.Prism as Prism exposing (Prism)
 
@@ -101,7 +102,7 @@ string =
 null : Codec ()
 null =
     Codec
-        { decoder = Json.Decode.null ()
+        { decoder = Roots.Json.Decoder.null
         , encoder = \_ -> Json.Encode.null
         }
 
@@ -109,10 +110,7 @@ null =
 tuple2 : Codec a -> Codec b -> Codec ( a, b )
 tuple2 (Codec ca) (Codec cb) =
     Codec
-        { decoder =
-            Json.Decode.map2 (\a b -> ( a, b ))
-                (Json.Decode.index 0 ca.decoder)
-                (Json.Decode.index 1 cb.decoder)
+        { decoder = Roots.Json.Decoder.tuple2 ca.decoder cb.decoder
         , encoder =
             \( a, b ) ->
                 Json.Encode.array
@@ -146,21 +144,21 @@ array (Codec codec) =
 
 
 type alias PropertyCodec a =
-    { decoder : Decoder a
+    { decoder : PropertyDecoder a
     , encoder : a -> Maybe ( String, Value )
     }
 
 
 property : String -> Codec a -> PropertyCodec a
 property key (Codec codec) =
-    { decoder = Json.Decode.field key codec.decoder
+    { decoder = Roots.Json.Decoder.property key codec.decoder
     , encoder = \x -> Just ( key, codec.encoder x )
     }
 
 
-maybeProperty : String -> Codec a -> PropertyCodec (Maybe a)
-maybeProperty key (Codec codec) =
-    { decoder = Json.Decode.maybe (Json.Decode.field key codec.decoder)
+optionalProperty : String -> Codec a -> PropertyCodec (Maybe a)
+optionalProperty key (Codec codec) =
+    { decoder = Roots.Json.Decoder.optionalProperty key codec.decoder
     , encoder = Maybe.map (\x -> ( key, codec.encoder x ))
     }
 
@@ -176,7 +174,7 @@ object0 =
 object1 : (a -> b) -> (b -> a) -> PropertyCodec a -> Codec b
 object1 f0 f1 pa =
     Codec
-        { decoder = Json.Decode.map f0 pa.decoder
+        { decoder = Roots.Json.Decoder.object1 f0 pa.decoder
         , encoder = \b -> Json.Encode.object (List.catMaybes [ pa.encoder (f1 b) ])
         }
 
@@ -184,7 +182,7 @@ object1 f0 f1 pa =
 object2 : (a -> b -> c) -> (c -> ( a, b )) -> PropertyCodec a -> PropertyCodec b -> Codec c
 object2 f0 f1 pa pb =
     Codec
-        { decoder = Json.Decode.map2 f0 pa.decoder pb.decoder
+        { decoder = Roots.Json.Decoder.object2 f0 pa.decoder pb.decoder
         , encoder =
             \c ->
                 let
@@ -204,7 +202,7 @@ object3 :
     -> Codec d
 object3 f0 f1 pa pb pc =
     Codec
-        { decoder = Json.Decode.map3 f0 pa.decoder pb.decoder pc.decoder
+        { decoder = Roots.Json.Decoder.object3 f0 pa.decoder pb.decoder pc.decoder
         , encoder =
             \d ->
                 let
@@ -225,7 +223,7 @@ object4 :
     -> Codec e
 object4 f0 f1 pa pb pc pd =
     Codec
-        { decoder = Json.Decode.map4 f0 pa.decoder pb.decoder pc.decoder pd.decoder
+        { decoder = Roots.Json.Decoder.object4 f0 pa.decoder pb.decoder pc.decoder pd.decoder
         , encoder =
             \e ->
                 case f1 e of
@@ -245,7 +243,7 @@ object5 :
     -> Codec f
 object5 f0 f1 pa pb pc pd pe =
     Codec
-        { decoder = Json.Decode.map5 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder
+        { decoder = Roots.Json.Decoder.object5 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder
         , encoder =
             \f ->
                 case f1 f of
@@ -274,7 +272,7 @@ object6 :
     -> Codec g
 object6 f0 f1 pa pb pc pd pe pf =
     Codec
-        { decoder = Json.Decode.map6 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder
+        { decoder = Roots.Json.Decoder.object6 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder
         , encoder =
             \g ->
                 case f1 g of
@@ -305,7 +303,7 @@ object7 :
     -> Codec h
 object7 f0 f1 pa pb pc pd pe pf pg =
     Codec
-        { decoder = Json.Decode.map7 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder pg.decoder
+        { decoder = Roots.Json.Decoder.object7 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder pg.decoder
         , encoder =
             \h ->
                 case f1 h of
@@ -339,7 +337,15 @@ object8 :
 object8 f0 f1 pa pb pc pd pe pf pg ph =
     Codec
         { decoder =
-            Json.Decode.map8 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder pg.decoder ph.decoder
+            Roots.Json.Decoder.object8 f0
+                pa.decoder
+                pb.decoder
+                pc.decoder
+                pd.decoder
+                pe.decoder
+                pf.decoder
+                pg.decoder
+                ph.decoder
         , encoder =
             \i ->
                 case f1 i of
@@ -375,8 +381,8 @@ object9 :
 object9 f0 f1 pa pb pc pd pe pf pg ph pi =
     Codec
         { decoder =
-            Json.Decode.map8
-                (\a b c d e f g ( h, i ) -> f0 a b c d e f g h i)
+            Roots.Json.Decoder.object9
+                f0
                 pa.decoder
                 pb.decoder
                 pc.decoder
@@ -384,7 +390,8 @@ object9 f0 f1 pa pb pc pd pe pf pg ph pi =
                 pe.decoder
                 pf.decoder
                 pg.decoder
-                (Json.Decode.map2 (\h i -> ( h, i )) ph.decoder pi.decoder)
+                ph.decoder
+                pi.decoder
         , encoder =
             \j ->
                 case f1 j of
@@ -422,8 +429,8 @@ object10 :
 object10 f0 f1 pa pb pc pd pe pf pg ph pi pj =
     Codec
         { decoder =
-            Json.Decode.map8
-                (\a b c d e f g ( h, i, j ) -> f0 a b c d e f g h i j)
+            Roots.Json.Decoder.object10
+                f0
                 pa.decoder
                 pb.decoder
                 pc.decoder
@@ -431,7 +438,9 @@ object10 f0 f1 pa pb pc pd pe pf pg ph pi pj =
                 pe.decoder
                 pf.decoder
                 pg.decoder
-                (Json.Decode.map3 (\h i j -> ( h, i, j )) ph.decoder pi.decoder pj.decoder)
+                ph.decoder
+                pi.decoder
+                pj.decoder
         , encoder =
             \k ->
                 case f1 k of
@@ -471,8 +480,8 @@ object11 :
 object11 f0 f1 pa pb pc pd pe pf pg ph pi pj pk =
     Codec
         { decoder =
-            Json.Decode.map8
-                (\a b c d e f g (T4 h i j k) -> f0 a b c d e f g h i j k)
+            Roots.Json.Decoder.object11
+                f0
                 pa.decoder
                 pb.decoder
                 pc.decoder
@@ -480,7 +489,10 @@ object11 f0 f1 pa pb pc pd pe pf pg ph pi pj pk =
                 pe.decoder
                 pf.decoder
                 pg.decoder
-                (Json.Decode.map4 T4 ph.decoder pi.decoder pj.decoder pk.decoder)
+                ph.decoder
+                pi.decoder
+                pj.decoder
+                pk.decoder
         , encoder =
             \l ->
                 case f1 l of
@@ -504,8 +516,7 @@ object11 f0 f1 pa pb pc pd pe pf pg ph pi pj pk =
 
 
 type alias VariantCodec t a =
-    { typeDecoder : Decoder t
-    , valueDecoder : Decoder a -> Decoder a
+    { decoder : VariantDecoder t a
     , encoder : t -> Value -> Value
     }
 
@@ -514,8 +525,7 @@ type alias VariantCodec t a =
 -}
 objectVariantCodec : String -> String -> Codec t -> VariantCodec t a
 objectVariantCodec typeKey valueKey (Codec typeCodec) =
-    { typeDecoder = Json.Decode.field typeKey typeCodec.decoder
-    , valueDecoder = Json.Decode.field valueKey
+    { decoder = Roots.Json.Decoder.objectVariantDecoder typeKey valueKey typeCodec.decoder
     , encoder =
         \typ value ->
             Json.Encode.object
@@ -534,20 +544,10 @@ variant2 :
 variant2 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) unrecognized =
     Codec
         { decoder =
-            variantCodec.typeDecoder
-                |> Json.Decode.andThen
-                    (\typ ->
-                        variantCodec.valueDecoder
-                            (if typ == t0 then
-                                Json.Decode.map (Prism.review p0) c0.decoder
-
-                             else if typ == t1 then
-                                Json.Decode.map (Prism.review p1) c1.decoder
-
-                             else
-                                Json.Decode.fail (unrecognized typ)
-                            )
-                    )
+            Roots.Json.Decoder.variant2 variantCodec.decoder
+                ( t0, Prism.review p0, c0.decoder )
+                ( t1, Prism.review p1, c1.decoder )
+                unrecognized
         , encoder =
             \value ->
                 case Prism.preview p0 value of
@@ -574,23 +574,11 @@ variant3 :
 variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) unrecognized =
     Codec
         { decoder =
-            variantCodec.typeDecoder
-                |> Json.Decode.andThen
-                    (\typ ->
-                        variantCodec.valueDecoder
-                            (if typ == t0 then
-                                Json.Decode.map (Prism.review p0) c0.decoder
-
-                             else if typ == t1 then
-                                Json.Decode.map (Prism.review p1) c1.decoder
-
-                             else if typ == t2 then
-                                Json.Decode.map (Prism.review p2) c2.decoder
-
-                             else
-                                Json.Decode.fail (unrecognized typ)
-                            )
-                    )
+            Roots.Json.Decoder.variant3 variantCodec.decoder
+                ( t0, Prism.review p0, c0.decoder )
+                ( t1, Prism.review p1, c1.decoder )
+                ( t2, Prism.review p2, c2.decoder )
+                unrecognized
         , encoder =
             \value ->
                 case Prism.preview p0 value of
@@ -623,26 +611,12 @@ variant4 :
 variant4 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) ( t3, p3, Codec c3 ) unrecognized =
     Codec
         { decoder =
-            variantCodec.typeDecoder
-                |> Json.Decode.andThen
-                    (\typ ->
-                        variantCodec.valueDecoder
-                            (if typ == t0 then
-                                Json.Decode.map (Prism.review p0) c0.decoder
-
-                             else if typ == t1 then
-                                Json.Decode.map (Prism.review p1) c1.decoder
-
-                             else if typ == t2 then
-                                Json.Decode.map (Prism.review p2) c2.decoder
-
-                             else if typ == t3 then
-                                Json.Decode.map (Prism.review p3) c3.decoder
-
-                             else
-                                Json.Decode.fail (unrecognized typ)
-                            )
-                    )
+            Roots.Json.Decoder.variant4 variantCodec.decoder
+                ( t0, Prism.review p0, c0.decoder )
+                ( t1, Prism.review p1, c1.decoder )
+                ( t2, Prism.review p2, c2.decoder )
+                ( t3, Prism.review p3, c3.decoder )
+                unrecognized
         , encoder =
             \value ->
                 case Prism.preview p0 value of
