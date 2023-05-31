@@ -6,7 +6,7 @@ module Roots.Array exposing
     , dropLeft, dropRight
     , Modification(..), modifyFirst
     , concatArrays, concatStrings, intersperse
-    , sort
+    , sort, sortBy
     , sample, sampleN, shuffle
     )
 
@@ -19,7 +19,7 @@ module Roots.Array exposing
 @docs dropLeft, dropRight
 @docs Modification, modifyFirst
 @docs concatArrays, concatStrings, intersperse
-@docs sort
+@docs sort, sortBy
 @docs sample, sampleN, shuffle
 
 -}
@@ -239,6 +239,16 @@ Implementation note: this round-trips through the list type.
 sort : Array comparable -> Array comparable
 sort =
     Array.toList >> List.sort >> Array.fromList
+
+
+{-| Sort an array by a derived value.
+
+Implementation note: this round-trips through the list type.
+
+-}
+sortBy : (a -> comparable) -> Array a -> Array a
+sortBy f =
+    Array.toList >> List.sortBy f >> Array.fromList
 
 
 uncons : Array a -> Maybe ( a, Array a )
