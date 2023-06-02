@@ -7,7 +7,7 @@ module Roots.Json exposing
     , PropertyCodec, property, optionalProperty
     , object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
     , VariantCodec, objectVariantCodec
-    , variant2, variant3, variant4
+    , variant2, variant3, variant4, variant5, variant6
     )
 
 {-| Json.
@@ -20,7 +20,7 @@ module Roots.Json exposing
 @docs PropertyCodec, property, optionalProperty
 @docs object0, object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
 @docs VariantCodec, objectVariantCodec
-@docs variant2, variant3, variant4
+@docs variant2, variant3, variant4, variant5, variant6
 
 -}
 
@@ -640,4 +640,110 @@ variant4 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec 
 
                                             Nothing ->
                                                 Json.Encode.null
+        }
+
+
+variant5 :
+    VariantCodec t f
+    -> ( t, Prism f a, Codec a )
+    -> ( t, Prism f b, Codec b )
+    -> ( t, Prism f c, Codec c )
+    -> ( t, Prism f d, Codec d )
+    -> ( t, Prism f e, Codec e )
+    -> (t -> String)
+    -> Codec f
+variant5 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) ( t3, p3, Codec c3 ) ( t4, p4, Codec c4 ) unrecognized =
+    Codec
+        { decoder =
+            Roots.Json.Decoder.variant5 variantCodec.decoder
+                ( t0, Prism.review p0, c0.decoder )
+                ( t1, Prism.review p1, c1.decoder )
+                ( t2, Prism.review p2, c2.decoder )
+                ( t3, Prism.review p3, c3.decoder )
+                ( t3, Prism.review p4, c4.decoder )
+                unrecognized
+        , encoder =
+            \value ->
+                case Prism.preview p0 value of
+                    Just inner ->
+                        variantCodec.encoder t0 (c0.encoder inner)
+
+                    Nothing ->
+                        case Prism.preview p1 value of
+                            Just inner ->
+                                variantCodec.encoder t1 (c1.encoder inner)
+
+                            Nothing ->
+                                case Prism.preview p2 value of
+                                    Just inner ->
+                                        variantCodec.encoder t2 (c2.encoder inner)
+
+                                    Nothing ->
+                                        case Prism.preview p3 value of
+                                            Just inner ->
+                                                variantCodec.encoder t3 (c3.encoder inner)
+
+                                            Nothing ->
+                                                case Prism.preview p4 value of
+                                                    Just inner ->
+                                                        variantCodec.encoder t4 (c4.encoder inner)
+
+                                                    Nothing ->
+                                                        Json.Encode.null
+        }
+
+
+variant6 :
+    VariantCodec t g
+    -> ( t, Prism g a, Codec a )
+    -> ( t, Prism g b, Codec b )
+    -> ( t, Prism g c, Codec c )
+    -> ( t, Prism g d, Codec d )
+    -> ( t, Prism g e, Codec e )
+    -> ( t, Prism g f, Codec f )
+    -> (t -> String)
+    -> Codec g
+variant6 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) ( t3, p3, Codec c3 ) ( t4, p4, Codec c4 ) ( t5, p5, Codec c5 ) unrecognized =
+    Codec
+        { decoder =
+            Roots.Json.Decoder.variant5 variantCodec.decoder
+                ( t0, Prism.review p0, c0.decoder )
+                ( t1, Prism.review p1, c1.decoder )
+                ( t2, Prism.review p2, c2.decoder )
+                ( t3, Prism.review p3, c3.decoder )
+                ( t3, Prism.review p4, c4.decoder )
+                unrecognized
+        , encoder =
+            \value ->
+                case Prism.preview p0 value of
+                    Just inner ->
+                        variantCodec.encoder t0 (c0.encoder inner)
+
+                    Nothing ->
+                        case Prism.preview p1 value of
+                            Just inner ->
+                                variantCodec.encoder t1 (c1.encoder inner)
+
+                            Nothing ->
+                                case Prism.preview p2 value of
+                                    Just inner ->
+                                        variantCodec.encoder t2 (c2.encoder inner)
+
+                                    Nothing ->
+                                        case Prism.preview p3 value of
+                                            Just inner ->
+                                                variantCodec.encoder t3 (c3.encoder inner)
+
+                                            Nothing ->
+                                                case Prism.preview p4 value of
+                                                    Just inner ->
+                                                        variantCodec.encoder t4 (c4.encoder inner)
+
+                                                    Nothing ->
+                                                        case Prism.preview p5 value of
+                                                            Just inner ->
+                                                                variantCodec.encoder t5 (c5.encoder inner)
+
+                                                            Nothing ->
+                                                                Json.Encode.null
         }
