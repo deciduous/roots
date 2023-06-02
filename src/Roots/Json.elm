@@ -28,9 +28,10 @@ import Array
 import Json.Decode
 import Json.Encode
 import Roots exposing (..)
+import Roots.Iso as Iso exposing (Iso_)
 import Roots.Json.Decoder exposing (PropertyDecoder, VariantDecoder)
 import Roots.List as List
-import Roots.Prism as Prism exposing (Prism)
+import Roots.Prism as Prism exposing (Prism_)
 
 
 type alias Decoder a =
@@ -171,82 +172,92 @@ object0 =
         }
 
 
-object1 : (a -> b) -> (b -> a) -> PropertyCodec a -> Codec b
-object1 f0 f1 pa =
+object1 : Iso_ a b -> PropertyCodec a -> Codec b
+object1 iso pa =
     Codec
-        { decoder = Roots.Json.Decoder.object1 f0 pa.decoder
-        , encoder = \b -> Json.Encode.object (List.catMaybes [ pa.encoder (f1 b) ])
+        { decoder = Roots.Json.Decoder.object1 (Iso.view iso) pa.decoder
+        , encoder = \b -> Json.Encode.object (List.catMaybes [ pa.encoder (Iso.review iso b) ])
         }
 
 
-object2 : (a -> b -> c) -> (c -> ( a, b )) -> PropertyCodec a -> PropertyCodec b -> Codec c
-object2 f0 f1 pa pb =
+object2 : Iso_ ( a, b ) c -> PropertyCodec a -> PropertyCodec b -> Codec c
+object2 iso pa pb =
     Codec
-        { decoder = Roots.Json.Decoder.object2 f0 pa.decoder pb.decoder
+        { decoder = Roots.Json.Decoder.object2 (\a b -> Iso.view iso ( a, b )) pa.decoder pb.decoder
         , encoder =
             \c ->
                 let
                     ( a, b ) =
-                        f1 c
+                        Iso.review iso c
                 in
                 Json.Encode.object (List.catMaybes [ pa.encoder a, pb.encoder b ])
         }
 
 
 object3 :
-    (a -> b -> c -> d)
-    -> (d -> ( a, b, c ))
+    Iso_ ( a, b, c ) d
     -> PropertyCodec a
     -> PropertyCodec b
     -> PropertyCodec c
     -> Codec d
-object3 f0 f1 pa pb pc =
+object3 iso pa pb pc =
     Codec
-        { decoder = Roots.Json.Decoder.object3 f0 pa.decoder pb.decoder pc.decoder
+        { decoder = Roots.Json.Decoder.object3 (\a b c -> Iso.view iso ( a, b, c )) pa.decoder pb.decoder pc.decoder
         , encoder =
             \d ->
                 let
                     ( a, b, c ) =
-                        f1 d
+                        Iso.review iso d
                 in
                 Json.Encode.object (List.catMaybes [ pa.encoder a, pb.encoder b, pc.encoder c ])
         }
 
 
 object4 :
-    (a -> b -> c -> d -> e)
-    -> (e -> T4 a b c d)
+    Iso_ (T4 a b c d) e
     -> PropertyCodec a
     -> PropertyCodec b
     -> PropertyCodec c
     -> PropertyCodec d
     -> Codec e
-object4 f0 f1 pa pb pc pd =
+object4 iso pa pb pc pd =
     Codec
-        { decoder = Roots.Json.Decoder.object4 f0 pa.decoder pb.decoder pc.decoder pd.decoder
+        { decoder =
+            Roots.Json.Decoder.object4
+                (\a b c d -> Iso.view iso (T4 a b c d))
+                pa.decoder
+                pb.decoder
+                pc.decoder
+                pd.decoder
         , encoder =
             \e ->
-                case f1 e of
+                case Iso.review iso e of
                     T4 a b c d ->
                         Json.Encode.object (List.catMaybes [ pa.encoder a, pb.encoder b, pc.encoder c, pd.encoder d ])
         }
 
 
 object5 :
-    (a -> b -> c -> d -> e -> f)
-    -> (f -> T5 a b c d e)
+    Iso_ (T5 a b c d e) f
     -> PropertyCodec a
     -> PropertyCodec b
     -> PropertyCodec c
     -> PropertyCodec d
     -> PropertyCodec e
     -> Codec f
-object5 f0 f1 pa pb pc pd pe =
+object5 iso pa pb pc pd pe =
     Codec
-        { decoder = Roots.Json.Decoder.object5 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder
+        { decoder =
+            Roots.Json.Decoder.object5
+                (\a b c d e -> Iso.view iso (T5 a b c d e))
+                pa.decoder
+                pb.decoder
+                pc.decoder
+                pd.decoder
+                pe.decoder
         , encoder =
             \f ->
-                case f1 f of
+                case Iso.review iso f of
                     T5 a b c d e ->
                         Json.Encode.object
                             (List.catMaybes
@@ -261,8 +272,7 @@ object5 f0 f1 pa pb pc pd pe =
 
 
 object6 :
-    (a -> b -> c -> d -> e -> f -> g)
-    -> (g -> T6 a b c d e f)
+    Iso_ (T6 a b c d e f) g
     -> PropertyCodec a
     -> PropertyCodec b
     -> PropertyCodec c
@@ -270,12 +280,20 @@ object6 :
     -> PropertyCodec e
     -> PropertyCodec f
     -> Codec g
-object6 f0 f1 pa pb pc pd pe pf =
+object6 iso pa pb pc pd pe pf =
     Codec
-        { decoder = Roots.Json.Decoder.object6 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder
+        { decoder =
+            Roots.Json.Decoder.object6
+                (\a b c d e f -> Iso.view iso (T6 a b c d e f))
+                pa.decoder
+                pb.decoder
+                pc.decoder
+                pd.decoder
+                pe.decoder
+                pf.decoder
         , encoder =
             \g ->
-                case f1 g of
+                case Iso.review iso g of
                     T6 a b c d e f ->
                         Json.Encode.object
                             (List.catMaybes
@@ -291,8 +309,7 @@ object6 f0 f1 pa pb pc pd pe pf =
 
 
 object7 :
-    (a -> b -> c -> d -> e -> f -> g -> h)
-    -> (h -> T7 a b c d e f g)
+    Iso_ (T7 a b c d e f g) h
     -> PropertyCodec a
     -> PropertyCodec b
     -> PropertyCodec c
@@ -301,12 +318,21 @@ object7 :
     -> PropertyCodec f
     -> PropertyCodec g
     -> Codec h
-object7 f0 f1 pa pb pc pd pe pf pg =
+object7 iso pa pb pc pd pe pf pg =
     Codec
-        { decoder = Roots.Json.Decoder.object7 f0 pa.decoder pb.decoder pc.decoder pd.decoder pe.decoder pf.decoder pg.decoder
+        { decoder =
+            Roots.Json.Decoder.object7
+                (\a b c d e f g -> Iso.view iso (T7 a b c d e f g))
+                pa.decoder
+                pb.decoder
+                pc.decoder
+                pd.decoder
+                pe.decoder
+                pf.decoder
+                pg.decoder
         , encoder =
             \h ->
-                case f1 h of
+                case Iso.review iso h of
                     T7 a b c d e f g ->
                         Json.Encode.object
                             (List.catMaybes
@@ -323,8 +349,7 @@ object7 f0 f1 pa pb pc pd pe pf pg =
 
 
 object8 :
-    (a -> b -> c -> d -> e -> f -> g -> h -> i)
-    -> (i -> T8 a b c d e f g h)
+    Iso_ (T8 a b c d e f g h) i
     -> PropertyCodec a
     -> PropertyCodec b
     -> PropertyCodec c
@@ -334,10 +359,11 @@ object8 :
     -> PropertyCodec g
     -> PropertyCodec h
     -> Codec i
-object8 f0 f1 pa pb pc pd pe pf pg ph =
+object8 iso pa pb pc pd pe pf pg ph =
     Codec
         { decoder =
-            Roots.Json.Decoder.object8 f0
+            Roots.Json.Decoder.object8
+                (\a b c d e f g h -> Iso.view iso (T8 a b c d e f g h))
                 pa.decoder
                 pb.decoder
                 pc.decoder
@@ -348,7 +374,7 @@ object8 f0 f1 pa pb pc pd pe pf pg ph =
                 ph.decoder
         , encoder =
             \i ->
-                case f1 i of
+                case Iso.review iso i of
                     T8 a b c d e f g h ->
                         Json.Encode.object
                             (List.catMaybes
@@ -366,8 +392,7 @@ object8 f0 f1 pa pb pc pd pe pf pg ph =
 
 
 object9 :
-    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j)
-    -> (j -> T9 a b c d e f g h i)
+    Iso_ (T9 a b c d e f g h i) j
     -> PropertyCodec a
     -> PropertyCodec b
     -> PropertyCodec c
@@ -378,11 +403,11 @@ object9 :
     -> PropertyCodec h
     -> PropertyCodec i
     -> Codec j
-object9 f0 f1 pa pb pc pd pe pf pg ph pi =
+object9 iso pa pb pc pd pe pf pg ph pi =
     Codec
         { decoder =
             Roots.Json.Decoder.object9
-                f0
+                (\a b c d e f g h i -> Iso.view iso (T9 a b c d e f g h i))
                 pa.decoder
                 pb.decoder
                 pc.decoder
@@ -394,7 +419,7 @@ object9 f0 f1 pa pb pc pd pe pf pg ph pi =
                 pi.decoder
         , encoder =
             \j ->
-                case f1 j of
+                case Iso.review iso j of
                     T9 a b c d e f g h i ->
                         Json.Encode.object
                             (List.catMaybes
@@ -413,8 +438,7 @@ object9 f0 f1 pa pb pc pd pe pf pg ph pi =
 
 
 object10 :
-    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k)
-    -> (k -> T10 a b c d e f g h i j)
+    Iso_ (T10 a b c d e f g h i j) k
     -> PropertyCodec a
     -> PropertyCodec b
     -> PropertyCodec c
@@ -426,11 +450,11 @@ object10 :
     -> PropertyCodec i
     -> PropertyCodec j
     -> Codec k
-object10 f0 f1 pa pb pc pd pe pf pg ph pi pj =
+object10 iso pa pb pc pd pe pf pg ph pi pj =
     Codec
         { decoder =
             Roots.Json.Decoder.object10
-                f0
+                (\a b c d e f g h i j -> Iso.view iso (T10 a b c d e f g h i j))
                 pa.decoder
                 pb.decoder
                 pc.decoder
@@ -443,7 +467,7 @@ object10 f0 f1 pa pb pc pd pe pf pg ph pi pj =
                 pj.decoder
         , encoder =
             \k ->
-                case f1 k of
+                case Iso.review iso k of
                     T10 a b c d e f g h i j ->
                         Json.Encode.object
                             (List.catMaybes
@@ -463,8 +487,7 @@ object10 f0 f1 pa pb pc pd pe pf pg ph pi pj =
 
 
 object11 :
-    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> l)
-    -> (l -> T11 a b c d e f g h i j k)
+    Iso_ (T11 a b c d e f g h i j k) l
     -> PropertyCodec a
     -> PropertyCodec b
     -> PropertyCodec c
@@ -477,11 +500,11 @@ object11 :
     -> PropertyCodec j
     -> PropertyCodec k
     -> Codec l
-object11 f0 f1 pa pb pc pd pe pf pg ph pi pj pk =
+object11 iso pa pb pc pd pe pf pg ph pi pj pk =
     Codec
         { decoder =
             Roots.Json.Decoder.object11
-                f0
+                (\a b c d e f g h i j k -> Iso.view iso (T11 a b c d e f g h i j k))
                 pa.decoder
                 pb.decoder
                 pc.decoder
@@ -495,7 +518,7 @@ object11 f0 f1 pa pb pc pd pe pf pg ph pi pj pk =
                 pk.decoder
         , encoder =
             \l ->
-                case f1 l of
+                case Iso.review iso l of
                     T11 a b c d e f g h i j k ->
                         Json.Encode.object
                             (List.catMaybes
@@ -537,8 +560,8 @@ objectVariantCodec typeKey valueKey (Codec typeCodec) =
 
 variant2 :
     VariantCodec t c
-    -> ( t, Prism c a, Codec a )
-    -> ( t, Prism c b, Codec b )
+    -> ( t, Prism_ c a, Codec a )
+    -> ( t, Prism_ c b, Codec b )
     -> (t -> String)
     -> Codec c
 variant2 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) unrecognized =
@@ -566,9 +589,9 @@ variant2 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) unrecognized =
 
 variant3 :
     VariantCodec t d
-    -> ( t, Prism d a, Codec a )
-    -> ( t, Prism d b, Codec b )
-    -> ( t, Prism d c, Codec c )
+    -> ( t, Prism_ d a, Codec a )
+    -> ( t, Prism_ d b, Codec b )
+    -> ( t, Prism_ d c, Codec c )
     -> (t -> String)
     -> Codec d
 variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) unrecognized =
@@ -602,10 +625,10 @@ variant3 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec 
 
 variant4 :
     VariantCodec t e
-    -> ( t, Prism e a, Codec a )
-    -> ( t, Prism e b, Codec b )
-    -> ( t, Prism e c, Codec c )
-    -> ( t, Prism e d, Codec d )
+    -> ( t, Prism_ e a, Codec a )
+    -> ( t, Prism_ e b, Codec b )
+    -> ( t, Prism_ e c, Codec c )
+    -> ( t, Prism_ e d, Codec d )
     -> (t -> String)
     -> Codec e
 variant4 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) ( t3, p3, Codec c3 ) unrecognized =
@@ -645,11 +668,11 @@ variant4 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec 
 
 variant5 :
     VariantCodec t f
-    -> ( t, Prism f a, Codec a )
-    -> ( t, Prism f b, Codec b )
-    -> ( t, Prism f c, Codec c )
-    -> ( t, Prism f d, Codec d )
-    -> ( t, Prism f e, Codec e )
+    -> ( t, Prism_ f a, Codec a )
+    -> ( t, Prism_ f b, Codec b )
+    -> ( t, Prism_ f c, Codec c )
+    -> ( t, Prism_ f d, Codec d )
+    -> ( t, Prism_ f e, Codec e )
     -> (t -> String)
     -> Codec f
 variant5 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) ( t3, p3, Codec c3 ) ( t4, p4, Codec c4 ) unrecognized =
@@ -695,12 +718,12 @@ variant5 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec 
 
 variant6 :
     VariantCodec t g
-    -> ( t, Prism g a, Codec a )
-    -> ( t, Prism g b, Codec b )
-    -> ( t, Prism g c, Codec c )
-    -> ( t, Prism g d, Codec d )
-    -> ( t, Prism g e, Codec e )
-    -> ( t, Prism g f, Codec f )
+    -> ( t, Prism_ g a, Codec a )
+    -> ( t, Prism_ g b, Codec b )
+    -> ( t, Prism_ g c, Codec c )
+    -> ( t, Prism_ g d, Codec d )
+    -> ( t, Prism_ g e, Codec e )
+    -> ( t, Prism_ g f, Codec f )
     -> (t -> String)
     -> Codec g
 variant6 variantCodec ( t0, p0, Codec c0 ) ( t1, p1, Codec c1 ) ( t2, p2, Codec c2 ) ( t3, p3, Codec c3 ) ( t4, p4, Codec c4 ) ( t5, p5, Codec c5 ) unrecognized =

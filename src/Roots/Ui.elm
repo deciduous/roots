@@ -85,6 +85,7 @@ import Html.Attributes
 import Html.Events
 import Json.Decode
 import Roots exposing (T11(..), T4(..), ifte)
+import Roots.Iso as Iso
 import Roots.Json as Json
 import Svg
 
@@ -938,39 +939,38 @@ type alias Touch =
 
 touchDecoder : Json.Decoder Touch
 touchDecoder =
-    let
-        fromTuple clientX clientY force identifier pageX pageY radiusX radiusY rotationAngle screenX screenY =
-            { clientX = clientX
-            , clientY = clientY
-            , force = force
-            , identifier = identifier
-            , pageX = pageX
-            , pageY = pageY
-            , radiusX = radiusX
-            , radiusY = radiusY
-            , rotationAngle = rotationAngle
-            , screenX = screenX
-            , screenY = screenY
-            }
-
-        toTuple x =
-            T11
-                x.clientX
-                x.clientY
-                x.force
-                x.identifier
-                x.pageX
-                x.pageY
-                x.radiusX
-                x.radiusY
-                x.rotationAngle
-                x.screenX
-                x.screenY
-    in
     Json.toDecoder
         (Json.object11
-            fromTuple
-            toTuple
+            (Iso.iso
+                (\(T11 clientX clientY force identifier pageX pageY radiusX radiusY rotationAngle screenX screenY) ->
+                    { clientX = clientX
+                    , clientY = clientY
+                    , force = force
+                    , identifier = identifier
+                    , pageX = pageX
+                    , pageY = pageY
+                    , radiusX = radiusX
+                    , radiusY = radiusY
+                    , rotationAngle = rotationAngle
+                    , screenX = screenX
+                    , screenY = screenY
+                    }
+                )
+                (\x ->
+                    T11
+                        x.clientX
+                        x.clientY
+                        x.force
+                        x.identifier
+                        x.pageX
+                        x.pageY
+                        x.radiusX
+                        x.radiusY
+                        x.rotationAngle
+                        x.screenX
+                        x.screenY
+                )
+            )
             (Json.property "clientX" Json.float)
             (Json.property "clientY" Json.float)
             (Json.property "force" Json.float)

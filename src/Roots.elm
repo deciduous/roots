@@ -1,32 +1,29 @@
 module Roots exposing
-    ( Array
-    , ArrayZipper
+    ( Array, ArrayZipper
     , Dict
-    , Prism
     , Set
-    , T10(..)
-    , T11(..)
-    , T4(..)
-    , T5(..)
-    , T6(..)
-    , T7(..)
-    , T8(..)
-    , T9(..)
-    , ifte
-    , isEven
-    , isOdd
+    , T4(..), T5(..), T6(..), T7(..), T8(..), T9(..), T10(..), T11(..)
+    , Iso, Iso_
+    , Prism, Prism_
+    , ifte, isEven, isOdd
     )
 
 {-| Roots.
 
-@docs Array ArrayZipper Dict Prism Set T4 T5 T6 T7 T8 T9 T10 T11
-@docs ifte isEven isOdd
+@docs Array, ArrayZipper
+@docs Dict
+@docs Set
+@docs T4, T5, T6, T7, T8, T9, T10, T11
+@docs Iso, Iso_
+@docs Prism, Prism_
+@docs ifte, isEven, isOdd
 
 -}
 
 import Array
 import Dict
 import Roots.ArrayZipper as ArrayZipper
+import Roots.Iso as Iso
 import Roots.Prism as Prism
 import Set
 
@@ -43,8 +40,20 @@ type alias Dict k v =
     Dict.Dict k v
 
 
-type alias Prism s a =
-    Prism.Prism s a
+type alias Iso s t a b =
+    Iso.Iso s t a b
+
+
+type alias Iso_ s a =
+    Iso.Iso_ s a
+
+
+type alias Prism s t a b =
+    Prism.Prism s t a b
+
+
+type alias Prism_ s a =
+    Prism.Prism_ s a
 
 
 type alias Set a =

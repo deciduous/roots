@@ -12,6 +12,7 @@
         "Roots.Float",
         "Roots.Generator",
         "Roots.Int",
+        "Roots.Iso",
         "Roots.Json",
         "Roots.Json.Decoder",
         "Roots.List",
