@@ -2,17 +2,17 @@ module Roots.Eff exposing
     ( Eff, pure
     , command, commandIf, commandWhen
     , attempt
+    , map
     , andThen, andThenIf
     , toTuple
     )
 
-{-|
-
-Eff.
+{-| Eff.
 
 @docs Eff, pure
 @docs command, commandIf, commandWhen
 @docs attempt
+@docs map
 @docs andThen, andThenIf
 @docs toTuple
 
@@ -35,31 +35,31 @@ pure model =
 {-| Add a command to an effectful value.
 -}
 command : Cmd e -> Eff e a -> Eff e a
-command c (Eff.Eff e) =
-    Eff.Eff { e | commands = c :: e.commands }
+command cmd (Eff.Eff eff) =
+    Eff.Eff { eff | commands = cmd :: eff.commands }
 
 
 {-| Conditionally add a command to an effectful value.
 -}
 commandIf : Bool -> Cmd e -> Eff e a -> Eff e a
-commandIf b c e =
+commandIf b cmd eff =
     if b then
-        command c e
+        command cmd eff
 
     else
-        e
+        eff
 
 
 {-| Conditionally add a command to an effectful value.
 -}
 commandWhen : Maybe a -> (a -> Cmd e) -> Eff e a -> Eff e a
-commandWhen mx c e =
+commandWhen mx cmd eff =
     case mx of
         Nothing ->
-            e
+            eff
 
         Just x ->
-            command (c x) e
+            command (cmd x) eff
 
 
 {-| Add a task to an effectful value.
@@ -67,6 +67,13 @@ commandWhen mx c e =
 attempt : (Result r s -> e) -> Task r s -> Eff e a -> Eff e a
 attempt f task =
     command (Task.attempt f task)
+
+
+{-| Map a function over an effectful value.
+-}
+map : (a -> b) -> Eff e a -> Eff e b
+map f (Eff.Eff { model, commands }) =
+    Eff.Eff { model = f model, commands = commands }
 
 
 {-| Update an effectful value.

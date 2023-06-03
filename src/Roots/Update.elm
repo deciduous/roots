@@ -3,11 +3,10 @@ module Roots.Update exposing
     , pure, command, attempt, impure, ask
     , if_, when
     , toUpdate
+    , zoom
     )
 
-{-|
-
-Update.
+{-| Update.
 
 @docs Update, empty, sequence
 @docs pure, command, attempt, impure, ask
@@ -17,8 +16,8 @@ Update.
 -}
 
 import Roots.Eff as Eff exposing (Eff)
-import Roots.Internal.Eff as Eff
 import Roots.Internal.Update as Update
+import Roots.Lens as Lens exposing (Lens_)
 import Task exposing (Task)
 
 
@@ -44,11 +43,7 @@ sequence =
 -}
 pure : (a -> a) -> Update e a
 pure f =
-    [ \x ->
-        Eff.Eff
-            { model = f x
-            , commands = []
-            }
+    [ \x -> Eff.pure (f x)
     ]
 
 
@@ -57,10 +52,8 @@ pure f =
 command : (a -> Cmd e) -> Update e a
 command c =
     [ \x ->
-        Eff.Eff
-            { model = x
-            , commands = [ c x ]
-            }
+        Eff.pure x
+            |> Eff.command (c x)
     ]
 
 
@@ -111,6 +104,18 @@ when p u =
                 Eff.pure x
                     |> Eff.andThen (u y)
     ]
+
+
+{-| Apply an update to a sub-structure.
+-}
+zoom : Lens_ s a -> Update e a -> Update e s
+zoom lens =
+    List.map
+        (\f s ->
+            Eff.map
+                (\a1 -> Lens.set lens a1 s)
+                (f (Lens.view lens s))
+        )
 
 
 {-| FIXME don't export this once roots defines its own browser application
