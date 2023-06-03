@@ -2,8 +2,8 @@ module Roots.Update exposing
     ( Update, empty, sequence
     , pure, command, attempt, impure, ask
     , if_, when
+    , overAffineTraversal, overLens
     , toUpdate
-    , zoom
     )
 
 {-| Update.
@@ -11,10 +11,12 @@ module Roots.Update exposing
 @docs Update, empty, sequence
 @docs pure, command, attempt, impure, ask
 @docs if_, when
+@docs overAffineTraversal, overLens
 @docs toUpdate
 
 -}
 
+import Roots.AffineTraversal as AffineTraversal exposing (AffineTraversal_)
 import Roots.Eff as Eff exposing (Eff)
 import Roots.Internal.Update as Update
 import Roots.Lens as Lens exposing (Lens_)
@@ -106,22 +108,41 @@ when p u =
     ]
 
 
-{-| Apply an update to a sub-structure.
+{-| Apply an update to the target of an affine traversal.
 -}
-zoom : Lens_ s a -> Update e a -> Update e s
-zoom lens =
-    List.map
-        (\f s ->
-            Eff.map
-                (\a1 -> Lens.set lens a1 s)
-                (f (Lens.view lens s))
-        )
+overAffineTraversal : AffineTraversal_ s a -> Update e a -> Update e s
+overAffineTraversal affineTraversal update =
+    [ \s ->
+        case AffineTraversal.preview affineTraversal s of
+            Nothing ->
+                Eff.pure s
+
+            Just a ->
+                Eff.map
+                    (\a1 -> AffineTraversal.set affineTraversal a1 s)
+                    (toEff update a)
+    ]
+
+
+{-| Apply an update to the target of a lens.
+-}
+overLens : Lens_ s a -> Update e a -> Update e s
+overLens lens update =
+    [ \s ->
+        Eff.map
+            (\a1 -> Lens.set lens a1 s)
+            (toEff update (Lens.view lens s))
+    ]
+
+
+toEff : Update e a -> a -> Eff e a
+toEff update x =
+    Eff.pure x
+        |> Eff.andThen update
 
 
 {-| FIXME don't export this once roots defines its own browser application
 -}
 toUpdate : Update e a -> a -> ( a, Cmd e )
-toUpdate u x =
-    Eff.pure x
-        |> Eff.andThen u
-        |> Eff.toTuple
+toUpdate update x =
+    Eff.toTuple (toEff update x)

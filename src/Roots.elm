@@ -4,7 +4,9 @@ module Roots exposing
     , Set
     , T4(..), T5(..), T6(..), T7(..), T8(..), T9(..), T10(..), T11(..)
     , Iso, Iso_
+    , Lens, Lens_
     , Prism, Prism_
+    , AffineTraversal, AffineTraversal_
     , ifte, isEven, isOdd
     )
 
@@ -15,17 +17,29 @@ module Roots exposing
 @docs Set
 @docs T4, T5, T6, T7, T8, T9, T10, T11
 @docs Iso, Iso_
+@docs Lens, Lens_
 @docs Prism, Prism_
+@docs AffineTraversal, AffineTraversal_
 @docs ifte, isEven, isOdd
 
 -}
 
 import Array
 import Dict
+import Roots.AffineTraversal as AffineTraversal
 import Roots.ArrayZipper as ArrayZipper
 import Roots.Iso as Iso
+import Roots.Lens as Lens
 import Roots.Prism as Prism
 import Set
+
+
+type alias AffineTraversal s t a b =
+    AffineTraversal.AffineTraversal s t a b
+
+
+type alias AffineTraversal_ s a =
+    AffineTraversal.AffineTraversal_ s a
 
 
 type alias Array a =
@@ -46,6 +60,14 @@ type alias Iso s t a b =
 
 type alias Iso_ s a =
     Iso.Iso_ s a
+
+
+type alias Lens s t a b =
+    Lens.Lens s t a b
+
+
+type alias Lens_ s a =
+    Lens.Lens_ s a
 
 
 type alias Prism s t a b =
