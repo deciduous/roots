@@ -15,6 +15,7 @@
         "Roots.Iso",
         "Roots.Json",
         "Roots.Json.Decoder",
+        "Roots.Lens",
         "Roots.List",
         "Roots.List1",
         "Roots.Maybe",

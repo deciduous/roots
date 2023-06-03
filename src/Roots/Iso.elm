@@ -3,7 +3,7 @@ module Roots.Iso exposing
     , iso
     , view, review
     , set, over
-    , toPrism
+    , toLens, toPrism
     )
 
 {-|
@@ -12,11 +12,12 @@ module Roots.Iso exposing
 @docs iso
 @docs view, review
 @docs set, over
-@docs toPrism
+@docs toLens, toPrism
 
 -}
 
 import Roots.Internal.Iso as Iso
+import Roots.Internal.Lens exposing (Lens(..))
 import Roots.Internal.Prism exposing (Prism(..))
 
 
@@ -50,6 +51,11 @@ review (Iso.Iso _ rv) =
 set : Iso s t a b -> b -> s -> t
 set i b =
     over i (always b)
+
+
+toLens : Iso s t a b -> Lens s t a b
+toLens (Iso.Iso v rv) =
+    Lens v (always rv)
 
 
 toPrism : Iso s t a b -> Prism s t a b
