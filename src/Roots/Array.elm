@@ -2,6 +2,7 @@ module Roots.Array exposing
     ( singleton, cons
     , last, uncons
     , member, findFirst
+    , overHead
     , delete
     , dropLeft, dropRight
     , Modification(..), modifyFirst
@@ -15,6 +16,7 @@ module Roots.Array exposing
 @docs singleton, cons
 @docs last, uncons
 @docs member, findFirst
+@docs overHead
 @docs delete
 @docs dropLeft, dropRight
 @docs Modification, modifyFirst
@@ -186,6 +188,16 @@ member x xs =
                         loop (i + 1)
     in
     loop 0
+
+
+overHead : (a -> a) -> Array a -> Array a
+overHead f xs =
+    case Array.get 0 xs of
+        Nothing ->
+            xs
+
+        Just x ->
+            Array.set 0 (f x) xs
 
 
 {-| Sample an element, or return a default element if the array is empty.
