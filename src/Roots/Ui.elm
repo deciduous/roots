@@ -5,7 +5,7 @@ module Roots.Ui exposing
     , id
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , moveUp, moveDown, moveLeft, moveRight, rotate
-    , height, maxHeight, maxHeightUpTo, width, maxWidth, maxWidthUpTo, padding, padding4, spacing
+    , height, maxHeight, maxHeightUpTo, width, relativeWidth, maxWidth, maxWidthUpTo, padding, padding4, spacing
     , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
     , border, border4, roundedCorners
     , Color, background, rgb, rgba, toHex, transparent
@@ -48,7 +48,7 @@ module Roots.Ui exposing
 
 # Sizing / padding / spacing
 
-@docs height, maxHeight, maxHeightUpTo, width, maxWidth, maxWidthUpTo, padding, padding4, spacing
+@docs height, maxHeight, maxHeightUpTo, width, relativeWidth, maxWidth, maxWidthUpTo, padding, padding4, spacing
 
 
 # Font
@@ -559,9 +559,14 @@ width px =
     [ A0 (Element.width (Element.px px)) ]
 
 
+relativeWidth : Int -> Attr r a
+relativeWidth n =
+    [ A0 (Element.width (Element.fillPortion n)) ]
+
+
 maxWidth : Attr r a
 maxWidth =
-    [ A0 (Element.width Element.fill) ]
+    relativeWidth 1
 
 
 maxWidthUpTo : Int -> Attr r a
