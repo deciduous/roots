@@ -22,6 +22,7 @@ module Roots.List exposing
     , traverseRandom
     , uncons
     , unsnoc
+    , zipWith
     )
 
 {-| List.
@@ -49,6 +50,7 @@ module Roots.List exposing
 @docs traverseRandom
 @docs uncons
 @docs unsnoc
+@docs zipWith
 
 -}
 
@@ -386,3 +388,18 @@ unsnoc xs =
 
                 Just ( zs, z ) ->
                     Just ( y :: zs, z )
+
+
+zipWith : (a -> b -> c) -> List a -> List b -> List c
+zipWith f xs0 ys0 =
+    case xs0 of
+        [] ->
+            []
+
+        x :: xs ->
+            case ys0 of
+                [] ->
+                    []
+
+                y :: ys ->
+                    f x y :: zipWith f xs ys
