@@ -1,7 +1,7 @@
 module Roots.Array exposing
     ( singleton, cons
     , last, uncons
-    , member, findFirst
+    , member, findFirst, all
     , overHead
     , delete
     , dropLeft, dropRight
@@ -15,7 +15,7 @@ module Roots.Array exposing
 
 @docs singleton, cons
 @docs last, uncons
-@docs member, findFirst
+@docs member, findFirst, all
 @docs overHead
 @docs delete
 @docs dropLeft, dropRight
@@ -30,6 +30,13 @@ import Array exposing (Array)
 import Random
 import Roots.List as List
 import Roots.Random exposing (Random)
+
+
+{-| Determine whether every element satisfies a predicate.
+-}
+all : (a -> Bool) -> Array a -> Bool
+all f =
+    Array.foldl (\x acc -> acc && f x) True
 
 
 {-| Concatenate an array of arrays.
