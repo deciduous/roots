@@ -1,12 +1,12 @@
 module Roots.Maybe exposing
-    ( isJust
-    , isNothing
+    ( isNothing, isJust
+    , when
     )
 
 {-| Maybe.
 
-@docs isJust
-@docs isNothing
+@docs isNothing, isJust
+@docs when
 
 -}
 
@@ -22,6 +22,7 @@ isJust x =
         Just _ ->
             True
 
+
 {-| Is this value a Nothing?
 -}
 isNothing : Maybe a -> Bool
@@ -32,3 +33,12 @@ isNothing x =
 
         Just _ ->
             False
+
+
+when : Bool -> a -> Maybe a
+when b x =
+    if b then
+        Just x
+
+    else
+        Nothing
