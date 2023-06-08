@@ -1,6 +1,6 @@
 module Roots.Update exposing
     ( Update, empty, sequence
-    , pure, command, attempt, impure, ask
+    , pure, command, attempt, eff, ask
     , if_, when
     , overAffineTraversal, overLens
     , toUpdate
@@ -9,7 +9,7 @@ module Roots.Update exposing
 {-| Update.
 
 @docs Update, empty, sequence
-@docs pure, command, attempt, impure, ask
+@docs pure, command, attempt, eff, ask
 @docs if_, when
 @docs overAffineTraversal, overLens
 @docs toUpdate
@@ -66,27 +66,25 @@ attempt f task =
     command (\x -> Task.attempt f (task x))
 
 
-impure : (a -> Eff e a) -> Update e a
-impure f =
+{-| Make an update from an effectful value.
+-}
+eff : (a -> Eff e a) -> Update e a
+eff f =
     [ f ]
 
 
 ask : (a -> Update e a) -> Update e a
 ask f =
-    [ \x ->
-        Eff.pure x
-            |> Eff.andThen (f x)
-    ]
+    [ \x -> toEff (f x) x ]
 
 
 {-| Make an update conditional on its model.
 -}
 if_ : (a -> Bool) -> Update e a -> Update e a
-if_ p u =
+if_ p update =
     [ \x ->
         if p x then
-            Eff.pure x
-                |> Eff.andThen u
+            toEff update x
 
         else
             Eff.pure x
@@ -96,15 +94,14 @@ if_ p u =
 {-| Make an update conditional on its model.
 -}
 when : (a -> Maybe b) -> (b -> Update e a) -> Update e a
-when p u =
+when p update =
     [ \x ->
         case p x of
             Nothing ->
                 Eff.pure x
 
             Just y ->
-                Eff.pure x
-                    |> Eff.andThen (u y)
+                toEff (update y) x
     ]
 
 

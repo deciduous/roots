@@ -2,13 +2,13 @@ module Roots.Array exposing
     ( singleton, cons
     , last, uncons
     , member, findFirst, all, any
-    , overHead
     , delete
     , dropLeft, dropRight
     , Modification(..), modifyFirst
     , concatArrays, concatStrings, intersperse
     , sort, sortBy, sortWith
     , sample, sampleN, shuffle
+    , indexAffineTraversal
     )
 
 {-| Array.
@@ -16,18 +16,19 @@ module Roots.Array exposing
 @docs singleton, cons
 @docs last, uncons
 @docs member, findFirst, all, any
-@docs overHead
 @docs delete
 @docs dropLeft, dropRight
 @docs Modification, modifyFirst
 @docs concatArrays, concatStrings, intersperse
 @docs sort, sortBy, sortWith
 @docs sample, sampleN, shuffle
+@docs indexLens
 
 -}
 
 import Array exposing (Array)
 import Random
+import Roots.AffineTraversal as AffineTraversal exposing (AffineTraversal_)
 import Roots.List as List
 import Roots.Random exposing (Random)
 
@@ -176,6 +177,20 @@ findFirst f xs =
     go 0
 
 
+indexAffineTraversal : Int -> AffineTraversal_ (Array a) a
+indexAffineTraversal i =
+    AffineTraversal.affineTraversal
+        (\xs ->
+            case Array.get i xs of
+                Nothing ->
+                    Err xs
+
+                Just x ->
+                    Ok x
+        )
+        (\xs x -> Array.set i x xs)
+
+
 intersperse : a -> Array a -> Array a
 intersperse x xs =
     Array.fromList (List.intersperse x (Array.toList xs))
@@ -202,16 +217,6 @@ member x xs =
                         loop (i + 1)
     in
     loop 0
-
-
-overHead : (a -> a) -> Array a -> Array a
-overHead f xs =
-    case Array.get 0 xs of
-        Nothing ->
-            xs
-
-        Just x ->
-            Array.set 0 (f x) xs
 
 
 {-| Sample an element, or return a default element if the array is empty.
