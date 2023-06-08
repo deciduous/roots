@@ -3,6 +3,7 @@ module Roots.AffineTraversal exposing
     , affineTraversal
     , preview
     , set, over
+    , then_
     )
 
 {-| AffineTraversal.
@@ -11,6 +12,7 @@ module Roots.AffineTraversal exposing
 @docs affineTraversal
 @docs preview
 @docs set, over
+@docs then_
 
 -}
 
@@ -39,25 +41,49 @@ affineTraversal =
 {-| Inspect a value.
 -}
 preview : AffineTraversal s t a b -> s -> Maybe a
-preview (AffineTraversal.AffineTraversal pv _) x =
-    case pv x of
-        Err _ ->
-            Nothing
-
-        Ok a ->
-            Just a
+preview (AffineTraversal.AffineTraversal sta _) s =
+    Result.toMaybe (sta s)
 
 
 over : AffineTraversal s t a b -> (a -> b) -> s -> t
-over (AffineTraversal.AffineTraversal pv s) f x =
-    case pv x of
+over (AffineTraversal.AffineTraversal sta sbt) ab s =
+    case sta s of
         Err t ->
             t
 
         Ok a ->
-            s x (f a)
+            sbt s (ab a)
 
 
 set : AffineTraversal s t a b -> b -> s -> t
-set (AffineTraversal.AffineTraversal _ s) b x =
-    s x b
+set (AffineTraversal.AffineTraversal _ sbt) b s =
+    sbt s b
+
+
+then_ :
+    AffineTraversal x y a b
+    -> AffineTraversal s t x y
+    -> AffineTraversal s t a b
+then_ (AffineTraversal.AffineTraversal xya xby) (AffineTraversal.AffineTraversal stx syt) =
+    AffineTraversal.AffineTraversal
+        (\s ->
+            case stx s of
+                Err t ->
+                    Err t
+
+                Ok x ->
+                    case xya x of
+                        Err y ->
+                            Err (syt s y)
+
+                        Ok a ->
+                            Ok a
+        )
+        (\s b ->
+            case stx s of
+                Err t ->
+                    t
+
+                Ok x ->
+                    syt s (xby x b)
+        )

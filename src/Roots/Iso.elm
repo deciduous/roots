@@ -3,6 +3,7 @@ module Roots.Iso exposing
     , iso
     , view, review
     , set, over
+    , then_
     , toLens, toPrism
     )
 
@@ -12,6 +13,7 @@ module Roots.Iso exposing
 @docs iso
 @docs view, review
 @docs set, over
+@docs then_
 @docs toLens, toPrism
 
 -}
@@ -39,30 +41,39 @@ iso =
 
 
 over : Iso s t a b -> (a -> b) -> s -> t
-over (Iso.Iso v rv) f =
-    v >> f >> rv
+over (Iso.Iso sa bt) ab s =
+    bt (ab (sa s))
 
 
 review : Iso_ s a -> a -> s
-review (Iso.Iso _ rv) =
-    rv
+review (Iso.Iso _ as_) =
+    as_
 
 
 set : Iso s t a b -> b -> s -> t
-set i b =
-    over i (always b)
+set (Iso.Iso _ bt) b _ =
+    bt b
 
 
+{-| Cast to a lens.
+-}
 toLens : Iso s t a b -> Lens s t a b
-toLens (Iso.Iso v rv) =
-    Lens v (always rv)
+toLens (Iso.Iso sa bt) =
+    Lens sa (always bt)
 
 
+then_ : Iso x y a b -> Iso s t x y -> Iso s t a b
+then_ (Iso.Iso xa by) (Iso.Iso sx yt) =
+    Iso.Iso (\s -> xa (sx s)) (\b -> yt (by b))
+
+
+{-| Cast to a prism.
+-}
 toPrism : Iso s t a b -> Prism s t a b
-toPrism (Iso.Iso v rv) =
-    Prism (\t -> Just (v t)) rv
+toPrism (Iso.Iso sa bt) =
+    Prism (sa >> Ok) bt
 
 
 view : Iso_ s a -> s -> a
-view (Iso.Iso v _) =
-    v
+view (Iso.Iso sa _) =
+    sa

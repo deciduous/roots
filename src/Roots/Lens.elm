@@ -3,6 +3,8 @@ module Roots.Lens exposing
     , lens
     , view
     , set, over
+    , then_
+    , toAffineTraversal
     )
 
 {-|
@@ -11,9 +13,12 @@ module Roots.Lens exposing
 @docs lens
 @docs view
 @docs set, over
+@docs then_
+@docs toAffineTraversal
 
 -}
 
+import Roots.AffineTraversal as AffineTraversal exposing (AffineTraversal)
 import Roots.Internal.Lens as Lens
 
 
@@ -35,15 +40,27 @@ lens =
 
 
 over : Lens s t a b -> (a -> b) -> s -> t
-over (Lens.Lens v s) f x =
-    s x (f (v x))
+over (Lens.Lens sa sbt) ab s =
+    sbt s (ab (sa s))
 
 
 set : Lens s t a b -> b -> s -> t
-set (Lens.Lens _ s) b x =
-    s x b
+set (Lens.Lens _ sbt) b s =
+    sbt s b
+
+
+then_ : Lens x y a b -> Lens s t x y -> Lens s t a b
+then_ (Lens.Lens xa xby) (Lens.Lens sx syt) =
+    Lens.Lens (\x -> xa (sx x)) (\s b -> syt s (xby (sx s) b))
+
+
+{-| Cast to an affine traversal.
+-}
+toAffineTraversal : Lens s t a b -> AffineTraversal s t a b
+toAffineTraversal (Lens.Lens sa sbt) =
+    AffineTraversal.affineTraversal (sa >> Ok) sbt
 
 
 view : Lens_ s a -> s -> a
-view (Lens.Lens v _) =
-    v
+view (Lens.Lens sa _) =
+    sa
