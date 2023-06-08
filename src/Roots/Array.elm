@@ -1,6 +1,6 @@
 module Roots.Array exposing
     ( singleton, cons
-    , last, uncons
+    , last, uncons, unsnoc
     , member, findFirst, all, any
     , delete
     , dropLeft, dropRight
@@ -14,7 +14,7 @@ module Roots.Array exposing
 {-| Array.
 
 @docs singleton, cons
-@docs last, uncons
+@docs last, uncons, unsnoc
 @docs member, findFirst, all, any
 @docs delete
 @docs dropLeft, dropRight
@@ -295,3 +295,8 @@ sortWith f =
 uncons : Array a -> Maybe ( a, Array a )
 uncons xs =
     Maybe.map (\x -> ( x, dropLeft 1 xs )) (Array.get 0 xs)
+
+
+unsnoc : Array a -> Maybe ( Array a, a )
+unsnoc xs =
+    Maybe.map (\x -> ( dropRight 1 xs, x )) (Array.get (Array.length xs - 1) xs)
