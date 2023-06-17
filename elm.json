@@ -22,6 +22,7 @@
         "Roots.Maybe",
         "Roots.Prism",
         "Roots.Random",
+        "Roots.Result",
         "Roots.String",
         "Roots.Ui",
         "Roots.Update"
