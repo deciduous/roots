@@ -3,7 +3,7 @@ module Roots.Update exposing
     , pure, command, attempt, eff, ask
     , if_, when
     , overAffineTraversal, overLens
-    , toUpdate
+    , toEff, toUpdate
     )
 
 {-| Update.
@@ -12,7 +12,7 @@ module Roots.Update exposing
 @docs pure, command, attempt, eff, ask
 @docs if_, when
 @docs overAffineTraversal, overLens
-@docs toUpdate
+@docs toEff, toUpdate
 
 -}
 
