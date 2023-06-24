@@ -3,6 +3,7 @@ module Roots.Array exposing
     , last, uncons, unsnoc
     , member, findFirst, all, any
     , delete
+    , left
     , dropLeft, dropRight
     , Modification(..), modifyFirst
     , concatArrays, concatStrings, intersperse
@@ -17,6 +18,7 @@ module Roots.Array exposing
 @docs last, uncons, unsnoc
 @docs member, findFirst, all, any
 @docs delete
+@docs left
 @docs dropLeft, dropRight
 @docs Modification, modifyFirst
 @docs concatArrays, concatStrings, intersperse
@@ -118,6 +120,20 @@ dropRight n xs =
 
     else
         Array.slice 0 (negate n) xs
+
+
+{-| Take elements from the left.
+-}
+left : Int -> Array a -> Array a
+left n xs =
+    if n <= 0 then
+        Array.empty
+
+    else if n >= Array.length xs then
+        xs
+
+    else
+        Array.slice 0 n xs
 
 
 type Modification a
