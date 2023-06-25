@@ -5,7 +5,10 @@ module Roots.Ui exposing
     , id
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , moveUp, moveDown, moveLeft, moveRight, rotate
-    , height, maxHeight, maxHeightUpTo, width, relativeWidth, maxWidth, maxWidthUpTo, padding, padding4, spacing
+    , height, relativeHeight, maxHeight, maxHeightUpTo
+    , width, relativeWidth, maxWidth, maxWidthUpTo
+    , padding, padding4
+    , spacing
     , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
     , border, border4, roundedCorners
     , Color, background, rgb, rgba, toHex, transparent
@@ -48,7 +51,10 @@ module Roots.Ui exposing
 
 # Sizing / padding / spacing
 
-@docs height, maxHeight, maxHeightUpTo, width, relativeWidth, maxWidth, maxWidthUpTo, padding, padding4, spacing
+@docs height, relativeHeight, maxHeight, maxHeightUpTo
+@docs width, relativeWidth, maxWidth, maxWidthUpTo
+@docs padding, padding4
+@docs spacing
 
 
 # Font
@@ -542,6 +548,11 @@ rotate n =
 height : Int -> Attr r a
 height px =
     [ A0 (Element.height (Element.px px)) ]
+
+
+relativeHeight : Int -> Attr r a
+relativeHeight n =
+    [ A0 (Element.height (Element.fillPortion n)) ]
 
 
 maxHeight : Attr r a
