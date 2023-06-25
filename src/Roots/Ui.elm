@@ -1,5 +1,5 @@
 module Roots.Ui exposing
-    ( El, Attr, none, text, paragraph, link, svg, br, html, map, mapEnv
+    ( El, Attr, none, text, paragraph, link, svg, br, map, mapEnv
     , el, col, row, elEnv, attrEnv
     , checkbox, textBox, Label, labelAbove, labelBelow, labelLeft, labelRight, labelHidden
     , id
@@ -13,7 +13,8 @@ module Roots.Ui exposing
     , border, border4, roundedCorners
     , Color, background, rgb, rgba, toHex, transparent
     , autocomplete, blur, cursorText, iframe, pointer, unselectable
-    , Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, elIf, elWhen, focusStyle, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, toHtml
+    , html, htmlAttr
+    , Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, elIf, elWhen, focusStyle, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, toHtml, touchEventDecoder
     )
 
 {-| Ui.
@@ -21,7 +22,7 @@ module Roots.Ui exposing
 
 # Basic elements
 
-@docs El, Attr, none, text, paragraph, link, svg, br, html, map, mapEnv
+@docs El, Attr, none, text, paragraph, link, svg, br, map, mapEnv
 
 
 # Container elements
@@ -76,6 +77,11 @@ module Roots.Ui exposing
 
 @docs autocomplete, blur, cursorText, id, iframe, pointer, unselectable
 
+
+# HTML escape hatches
+
+@docs html, htmlAttr
+
 -}
 
 import Array exposing (Array)
@@ -90,6 +96,7 @@ import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Json.Decode
+import Json.Encode
 import Roots exposing (T11(..), T4(..), ifte)
 import Roots.Iso as Iso
 import Roots.Json as Json
@@ -301,14 +308,16 @@ html x =
     E0 (Element.html x)
 
 
+{-| Html escape hatch.
+-}
+htmlAttr : Html.Attribute a -> Attr r a
+htmlAttr x =
+    [ A0 (Element.htmlAttribute x) ]
+
+
 attr : String -> String -> Attr r a
 attr k v =
-    attr_ (Html.Attributes.attribute k v)
-
-
-attr_ : Html.Attribute a -> Attr r a
-attr_ x =
-    [ A0 (Element.htmlAttribute x) ]
+    htmlAttr (Html.Attributes.attribute k v)
 
 
 map : (a -> b) -> El r a -> El r b
@@ -828,22 +837,22 @@ transparent =
 
 autocomplete : Bool -> Attr r a
 autocomplete b =
-    attr_ (Html.Attributes.autocomplete b)
+    htmlAttr (Html.Attributes.autocomplete b)
 
 
 blur : Int -> Attr r a
 blur n =
-    attr_ (Html.Attributes.style "filter" ("blur(" ++ String.fromInt n ++ "px)"))
+    htmlAttr (Html.Attributes.style "filter" ("blur(" ++ String.fromInt n ++ "px)"))
 
 
 cursorText : Attr r a
 cursorText =
-    attr_ (Html.Attributes.style "cursor" "text")
+    htmlAttr (Html.Attributes.style "cursor" "text")
 
 
 id : String -> Attr r a
 id x =
-    attr_ (Html.Attributes.id x)
+    htmlAttr (Html.Attributes.id x)
 
 
 iframe : List (Attr r a) -> List ( String, String ) -> El r a
@@ -858,7 +867,7 @@ pointer =
 
 unselectable : Attr r a
 unselectable =
-    attr_ (Html.Attributes.style "user-select" "none")
+    htmlAttr (Html.Attributes.style "user-select" "none")
 
 
 
@@ -948,8 +957,8 @@ type alias Touch =
     , radiusX : Float
     , radiusY : Float
     , rotationAngle : Float
-    , screenX : Int
-    , screenY : Int
+    , screenX : Float
+    , screenY : Float
     }
 
 
@@ -996,8 +1005,8 @@ touchDecoder =
             (Json.property "radiusX" Json.float)
             (Json.property "radiusY" Json.float)
             (Json.property "rotationAngle" Json.float)
-            (Json.property "screenX" Json.int)
-            (Json.property "screenY" Json.int)
+            (Json.property "screenX" Json.float)
+            (Json.property "screenY" Json.float)
         )
 
 
@@ -1074,7 +1083,7 @@ onTouchStart toMessage =
 
 on : String -> Json.Decoder a -> Attr r a
 on event decoder =
-    attr_ (Html.Events.on event decoder)
+    htmlAttr (Html.Events.on event decoder)
 
 
 
