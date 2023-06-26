@@ -96,7 +96,6 @@ import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Json.Decode
-import Json.Encode
 import Roots exposing (T11(..), T4(..), ifte)
 import Roots.Iso as Iso
 import Roots.Json as Json
@@ -1063,27 +1062,43 @@ touchEventDecoder =
 
 onTouchCancel : (TouchEvent -> a) -> Attr r a
 onTouchCancel toMessage =
-    on "touchcancel" (Json.Decode.map toMessage touchEventDecoder)
+    onPreventDefault "touchcancel" (Json.Decode.map toMessage touchEventDecoder)
 
 
 onTouchEnd : (TouchEvent -> a) -> Attr r a
 onTouchEnd toMessage =
-    on "touchend" (Json.Decode.map toMessage touchEventDecoder)
+    onPreventDefault "touchend" (Json.Decode.map toMessage touchEventDecoder)
 
 
 onTouchMove : (TouchEvent -> a) -> Attr r a
 onTouchMove toMessage =
-    on "touchmove" (Json.Decode.map toMessage touchEventDecoder)
+    onPreventDefault "touchmove" (Json.Decode.map toMessage touchEventDecoder)
 
 
 onTouchStart : (TouchEvent -> a) -> Attr r a
 onTouchStart toMessage =
-    on "touchstart" (Json.Decode.map toMessage touchEventDecoder)
+    onPreventDefault "touchstart" (Json.Decode.map toMessage touchEventDecoder)
 
 
 on : String -> Json.Decoder a -> Attr r a
 on event decoder =
     htmlAttr (Html.Events.on event decoder)
+
+
+onPreventDefault : String -> Json.Decoder a -> Attr r a
+onPreventDefault event decoder =
+    htmlAttr
+        (Html.Events.custom event
+            (Json.Decode.map
+                (\message ->
+                    { message = message
+                    , preventDefault = True
+                    , stopPropagation = False
+                    }
+                )
+                decoder
+            )
+        )
 
 
 
