@@ -12,9 +12,14 @@ module Roots.Ui exposing
     , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
     , border, border4, roundedCorners
     , Color, background, rgb, rgba, toHex, transparent
+    , TouchEvent, Touch
+    , onTouchCancel, onTouchCancelWith
+    , onTouchEnd, onTouchEndWith
+    , onTouchMove, onTouchMoveWith
+    , onTouchStart, onTouchStartWith
     , autocomplete, blur, cursorText, iframe, pointer, unselectable
     , html, htmlAttr
-    , Option, Svg, Touch, TouchEvent, attr, attrIf, attrWhen, elIf, elWhen, focusStyle, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, onTouchCancel, onTouchEnd, onTouchMove, onTouchStart, toHtml, touchEventDecoder
+    , Option, Svg, attr, attrIf, attrWhen, elIf, elWhen, focusStyle, image, lazy, lazy2, lazy3, lazy4, onClick, onDoubleClick, onEnter, onFocus, onLoseFocus, onMouseDown, onMouseEnter, onMouseLeave, onMouseMove, onMouseUp, toHtml
     )
 
 {-| Ui.
@@ -71,6 +76,15 @@ module Roots.Ui exposing
 # Color
 
 @docs Color, background, rgb, rgba, toHex, transparent
+
+
+# Touch events
+
+@docs TouchEvent, Touch
+@docs onTouchCancel, onTouchCancelWith
+@docs onTouchEnd, onTouchEndWith
+@docs onTouchMove, onTouchMoveWith
+@docs onTouchStart, onTouchStartWith
 
 
 # Misc
@@ -1062,22 +1076,42 @@ touchEventDecoder =
 
 onTouchCancel : (TouchEvent -> a) -> Attr r a
 onTouchCancel toMessage =
-    onPreventDefault "touchcancel" (Json.Decode.map toMessage touchEventDecoder)
+    on "touchcancel" (Json.Decode.map toMessage touchEventDecoder)
+
+
+onTouchCancelWith : { preventDefault : Bool, stopPropagation : Bool } -> (TouchEvent -> a) -> Attr r a
+onTouchCancelWith opts toMessage =
+    onWith "touchcancel" opts (Json.Decode.map toMessage touchEventDecoder)
 
 
 onTouchEnd : (TouchEvent -> a) -> Attr r a
 onTouchEnd toMessage =
-    onPreventDefault "touchend" (Json.Decode.map toMessage touchEventDecoder)
+    on "touchend" (Json.Decode.map toMessage touchEventDecoder)
+
+
+onTouchEndWith : { preventDefault : Bool, stopPropagation : Bool } -> (TouchEvent -> a) -> Attr r a
+onTouchEndWith opts toMessage =
+    onWith "touchend" opts (Json.Decode.map toMessage touchEventDecoder)
 
 
 onTouchMove : (TouchEvent -> a) -> Attr r a
 onTouchMove toMessage =
-    onPreventDefault "touchmove" (Json.Decode.map toMessage touchEventDecoder)
+    on "touchmove" (Json.Decode.map toMessage touchEventDecoder)
+
+
+onTouchMoveWith : { preventDefault : Bool, stopPropagation : Bool } -> (TouchEvent -> a) -> Attr r a
+onTouchMoveWith opts toMessage =
+    onWith "touchmove" opts (Json.Decode.map toMessage touchEventDecoder)
 
 
 onTouchStart : (TouchEvent -> a) -> Attr r a
 onTouchStart toMessage =
-    onPreventDefault "touchstart" (Json.Decode.map toMessage touchEventDecoder)
+    on "touchstart" (Json.Decode.map toMessage touchEventDecoder)
+
+
+onTouchStartWith : { preventDefault : Bool, stopPropagation : Bool } -> (TouchEvent -> a) -> Attr r a
+onTouchStartWith opts toMessage =
+    onWith "touchstart" opts (Json.Decode.map toMessage touchEventDecoder)
 
 
 on : String -> Json.Decoder a -> Attr r a
@@ -1085,15 +1119,15 @@ on event decoder =
     htmlAttr (Html.Events.on event decoder)
 
 
-onPreventDefault : String -> Json.Decoder a -> Attr r a
-onPreventDefault event decoder =
+onWith : String -> { preventDefault : Bool, stopPropagation : Bool } -> Json.Decoder a -> Attr r a
+onWith event opts decoder =
     htmlAttr
         (Html.Events.custom event
             (Json.Decode.map
                 (\message ->
                     { message = message
-                    , preventDefault = True
-                    , stopPropagation = False
+                    , preventDefault = opts.preventDefault
+                    , stopPropagation = opts.stopPropagation
                     }
                 )
                 decoder
