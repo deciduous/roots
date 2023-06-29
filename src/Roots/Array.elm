@@ -7,6 +7,7 @@ module Roots.Array exposing
     , dropLeft, dropRight
     , Modification(..), modifyFirst
     , concatArrays, concatStrings, intersperse
+    , sum
     , sort, sortBy, sortWith
     , sample, sampleN, shuffle
     , indexAffineTraversal
@@ -22,6 +23,7 @@ module Roots.Array exposing
 @docs dropLeft, dropRight
 @docs Modification, modifyFirst
 @docs concatArrays, concatStrings, intersperse
+@docs sum
 @docs sort, sortBy, sortWith
 @docs sample, sampleN, shuffle
 @docs indexLens
@@ -306,6 +308,13 @@ Implementation note: this round-trips through the list type.
 sortWith : (a -> a -> Order) -> Array a -> Array a
 sortWith f =
     Array.toList >> List.sortWith f >> Array.fromList
+
+
+{-| Compute the sum of an array.
+-}
+sum : Array number -> number
+sum =
+    Array.foldl (+) 0
 
 
 uncons : Array a -> Maybe ( a, Array a )

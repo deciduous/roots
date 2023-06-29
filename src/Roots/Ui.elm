@@ -980,20 +980,6 @@ touchDecoder =
     Json.toDecoder
         (Json.object11
             (Iso.iso
-                (\(T11 clientX clientY force identifier pageX pageY radiusX radiusY rotationAngle screenX screenY) ->
-                    { clientX = clientX
-                    , clientY = clientY
-                    , force = force
-                    , identifier = identifier
-                    , pageX = pageX
-                    , pageY = pageY
-                    , radiusX = radiusX
-                    , radiusY = radiusY
-                    , rotationAngle = rotationAngle
-                    , screenX = screenX
-                    , screenY = screenY
-                    }
-                )
                 (\x ->
                     T11
                         x.clientX
@@ -1007,6 +993,20 @@ touchDecoder =
                         x.rotationAngle
                         x.screenX
                         x.screenY
+                )
+                (\(T11 clientX clientY force identifier pageX pageY radiusX radiusY rotationAngle screenX screenY) ->
+                    { clientX = clientX
+                    , clientY = clientY
+                    , force = force
+                    , identifier = identifier
+                    , pageX = pageX
+                    , pageY = pageY
+                    , radiusX = radiusX
+                    , radiusY = radiusY
+                    , rotationAngle = rotationAngle
+                    , screenX = screenX
+                    , screenY = screenY
+                    }
                 )
             )
             (Json.property "clientX" Json.float)

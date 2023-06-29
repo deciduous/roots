@@ -3,8 +3,8 @@ module Roots.Json.Decoder exposing
     , tuple2
     , PropertyDecoder, property, optionalProperty
     , object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
-    , VariantDecoder, objectVariantDecoder
-    , variant2, variant3, variant4, variant5, variant6
+    , enum
+    , arrayVariant, objectVariant
     )
 
 {-| Json.
@@ -13,8 +13,8 @@ module Roots.Json.Decoder exposing
 @docs tuple2
 @docs PropertyDecoder, property, optionalProperty
 @docs object1, object2, object3, object4, object5, object6, object7, object8, object9, object10, object11
-@docs VariantDecoder, objectVariantDecoder
-@docs variant2, variant3, variant4, variant5, variant6
+@docs enum
+@docs arrayVariant, objectVariant
 
 -}
 
@@ -211,171 +211,58 @@ object11 f0 pa pb pc pd pe pf pg ph pi pj pk =
         (Json.Decode.map4 T4 ph pi pj pk)
 
 
-type alias VariantDecoder t a =
-    { typeDecoder : Decoder t
-    , valueDecoder : Decoder a -> Decoder a
-    }
+enum : Decoder t -> List ( t, a ) -> Decoder a
+enum typeDecoder valueDecoders =
+    Json.Decode.oneOf
+        (List.map
+            (\( typ, value ) ->
+                typeDecoder
+                    |> Json.Decode.andThen
+                        (\typ2 ->
+                            if typ == typ2 then
+                                Json.Decode.succeed value
 
-
-{-| A two-key object decoder.
--}
-objectVariantDecoder : String -> String -> Decoder t -> VariantDecoder t a
-objectVariantDecoder typeKey valueKey typeDecoder =
-    { typeDecoder = Json.Decode.field typeKey typeDecoder
-    , valueDecoder = Json.Decode.field valueKey
-    }
-
-
-variant2 :
-    VariantDecoder t c
-    -> ( t, a -> c, Decoder a )
-    -> ( t, b -> c, Decoder b )
-    -> (t -> String)
-    -> Decoder c
-variant2 variantDecoder ( t0, p0, d0 ) ( t1, p1, d1 ) unrecognized =
-    variantDecoder.typeDecoder
-        |> Json.Decode.andThen
-            (\typ ->
-                variantDecoder.valueDecoder
-                    (if typ == t0 then
-                        Json.Decode.map p0 d0
-
-                     else if typ == t1 then
-                        Json.Decode.map p1 d1
-
-                     else
-                        Json.Decode.fail (unrecognized typ)
-                    )
+                            else
+                                Json.Decode.fail ""
+                        )
             )
+            valueDecoders
+        )
 
 
-variant3 :
-    VariantDecoder t d
-    -> ( t, a -> d, Decoder a )
-    -> ( t, b -> d, Decoder b )
-    -> ( t, c -> d, Decoder c )
-    -> (t -> String)
-    -> Decoder d
-variant3 variantDecoder ( t0, p0, d0 ) ( t1, p1, d1 ) ( t2, p2, d2 ) unrecognized =
-    variantDecoder.typeDecoder
-        |> Json.Decode.andThen
-            (\typ ->
-                variantDecoder.valueDecoder
-                    (if typ == t0 then
-                        Json.Decode.map p0 d0
+arrayVariant : Decoder t -> List ( t, Decoder a ) -> Decoder a
+arrayVariant typeDecoder valueDecoders =
+    Json.Decode.oneOf
+        (List.map
+            (\( typ, valueDecoder ) ->
+                Json.Decode.index 0 typeDecoder
+                    |> Json.Decode.andThen
+                        (\typ2 ->
+                            if typ == typ2 then
+                                Json.Decode.index 1 valueDecoder
 
-                     else if typ == t1 then
-                        Json.Decode.map p1 d1
-
-                     else if typ == t2 then
-                        Json.Decode.map p2 d2
-
-                     else
-                        Json.Decode.fail (unrecognized typ)
-                    )
+                            else
+                                Json.Decode.fail ""
+                        )
             )
+            valueDecoders
+        )
 
 
-variant4 :
-    VariantDecoder t e
-    -> ( t, a -> e, Decoder a )
-    -> ( t, b -> e, Decoder b )
-    -> ( t, c -> e, Decoder c )
-    -> ( t, d -> e, Decoder d )
-    -> (t -> String)
-    -> Decoder e
-variant4 variantDecoder ( t0, p0, d0 ) ( t1, p1, d1 ) ( t2, p2, d2 ) ( t3, p3, d3 ) unrecognized =
-    variantDecoder.typeDecoder
-        |> Json.Decode.andThen
-            (\typ ->
-                variantDecoder.valueDecoder
-                    (if typ == t0 then
-                        Json.Decode.map p0 d0
+objectVariant : String -> Decoder t -> String -> List ( t, Decoder a ) -> Decoder a
+objectVariant typeKey typeDecoder valueKey valueDecoders =
+    Json.Decode.oneOf
+        (List.map
+            (\( typ, valueDecoder ) ->
+                Json.Decode.field typeKey typeDecoder
+                    |> Json.Decode.andThen
+                        (\typ2 ->
+                            if typ == typ2 then
+                                Json.Decode.field valueKey valueDecoder
 
-                     else if typ == t1 then
-                        Json.Decode.map p1 d1
-
-                     else if typ == t2 then
-                        Json.Decode.map p2 d2
-
-                     else if typ == t3 then
-                        Json.Decode.map p3 d3
-
-                     else
-                        Json.Decode.fail (unrecognized typ)
-                    )
+                            else
+                                Json.Decode.fail ""
+                        )
             )
-
-
-variant5 :
-    VariantDecoder t f
-    -> ( t, a -> f, Decoder a )
-    -> ( t, b -> f, Decoder b )
-    -> ( t, c -> f, Decoder c )
-    -> ( t, d -> f, Decoder d )
-    -> ( t, e -> f, Decoder e )
-    -> (t -> String)
-    -> Decoder f
-variant5 variantDecoder ( t0, p0, d0 ) ( t1, p1, d1 ) ( t2, p2, d2 ) ( t3, p3, d3 ) ( t4, p4, d4 ) unrecognized =
-    variantDecoder.typeDecoder
-        |> Json.Decode.andThen
-            (\typ ->
-                variantDecoder.valueDecoder
-                    (if typ == t0 then
-                        Json.Decode.map p0 d0
-
-                     else if typ == t1 then
-                        Json.Decode.map p1 d1
-
-                     else if typ == t2 then
-                        Json.Decode.map p2 d2
-
-                     else if typ == t3 then
-                        Json.Decode.map p3 d3
-
-                     else if typ == t4 then
-                        Json.Decode.map p4 d4
-
-                     else
-                        Json.Decode.fail (unrecognized typ)
-                    )
-            )
-
-
-variant6 :
-    VariantDecoder t g
-    -> ( t, a -> g, Decoder a )
-    -> ( t, b -> g, Decoder b )
-    -> ( t, c -> g, Decoder c )
-    -> ( t, d -> g, Decoder d )
-    -> ( t, e -> g, Decoder e )
-    -> ( t, f -> g, Decoder f )
-    -> (t -> String)
-    -> Decoder g
-variant6 variantDecoder ( t0, p0, d0 ) ( t1, p1, d1 ) ( t2, p2, d2 ) ( t3, p3, d3 ) ( t4, p4, d4 ) ( t5, p5, d5 ) unrecognized =
-    variantDecoder.typeDecoder
-        |> Json.Decode.andThen
-            (\typ ->
-                variantDecoder.valueDecoder
-                    (if typ == t0 then
-                        Json.Decode.map p0 d0
-
-                     else if typ == t1 then
-                        Json.Decode.map p1 d1
-
-                     else if typ == t2 then
-                        Json.Decode.map p2 d2
-
-                     else if typ == t3 then
-                        Json.Decode.map p3 d3
-
-                     else if typ == t4 then
-                        Json.Decode.map p4 d4
-
-                     else if typ == t5 then
-                        Json.Decode.map p5 d5
-
-                     else
-                        Json.Decode.fail (unrecognized typ)
-                    )
-            )
+            valueDecoders
+        )

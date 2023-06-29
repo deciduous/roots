@@ -1,15 +1,16 @@
 module Roots.Dict exposing
-    ( adjust
-    , upsert
+    ( fromArray
+    , adjust, upsert
     )
 
 {-| Dict.
 
-@docs adjust
-@docs upsert
+@docs fromArray
+@docs adjust, upsert
 
 -}
 
+import Array exposing (Array)
 import Dict exposing (Dict)
 
 
@@ -18,6 +19,11 @@ import Dict exposing (Dict)
 adjust : comparable -> (v -> v) -> Dict comparable v -> Dict comparable v
 adjust k f =
     Dict.update k (Maybe.map f)
+
+
+fromArray : Array ( comparable, v ) -> Dict comparable v
+fromArray =
+    Array.toList >> Dict.fromList
 
 
 {-| Modify an existing value, or insert one if it doesn't exist.
