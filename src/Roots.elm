@@ -2,6 +2,7 @@ module Roots exposing
     ( Array, ArrayZipper
     , Dict
     , Set
+    , Task
     , T4(..), T5(..), T6(..), T7(..), T8(..), T9(..), T10(..), T11(..)
     , Iso, Iso_
     , Lens, Lens_
@@ -15,6 +16,7 @@ module Roots exposing
 @docs Array, ArrayZipper
 @docs Dict
 @docs Set
+@docs Task
 @docs T4, T5, T6, T7, T8, T9, T10, T11
 @docs Iso, Iso_
 @docs Lens, Lens_
@@ -32,6 +34,7 @@ import Roots.Iso as Iso
 import Roots.Lens as Lens
 import Roots.Prism as Prism
 import Set
+import Task
 
 
 type alias AffineTraversal s t a b =
@@ -80,6 +83,10 @@ type alias Prism_ s a =
 
 type alias Set a =
     Set.Set a
+
+
+type alias Task e a =
+    Task.Task e a
 
 
 type T4 a b c d
