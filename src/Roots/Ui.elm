@@ -5,6 +5,7 @@ module Roots.Ui exposing
     , id
     , above, onRight, below, onLeft, inFrontOf, behind, top, right, bottom, left, centerX, centerY
     , moveUp, moveDown, moveLeft, moveRight, rotate
+    , scrollbarX, scrollbarY
     , height, relativeHeight, maxHeight, maxHeightUpTo
     , width, relativeWidth, maxWidth, maxWidthUpTo
     , padding, padding4
@@ -54,6 +55,11 @@ module Roots.Ui exposing
 # Movement
 
 @docs moveUp, moveDown, moveLeft, moveRight, rotate
+
+
+# Scrollbars
+
+@docs scrollbarX, scrollbarY
 
 
 # Sizing / padding / spacing
@@ -562,6 +568,20 @@ moveRight n =
 rotate : Float -> Attr r a
 rotate n =
     [ A0 (Element.rotate n) ]
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Movement
+
+
+scrollbarX : Attr r a
+scrollbarX =
+    [ A0 Element.scrollbarX ]
+
+scrollbarY : Attr r a
+scrollbarY =
+    [ A0 Element.scrollbarY ]
 
 
 
