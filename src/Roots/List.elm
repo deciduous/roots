@@ -17,6 +17,7 @@ module Roots.List exposing
     , modifyFirst_
     , overLast
     , shuffle
+    , span
     , splitAt
     , traverseMaybe
     , traverseRandom
@@ -45,6 +46,7 @@ module Roots.List exposing
 @docs modifyFirst_
 @docs overLast
 @docs shuffle
+@docs span
 @docs splitAt
 @docs traverseMaybe
 @docs traverseRandom
@@ -310,6 +312,27 @@ overLast f xs0 =
 shuffle : List a -> Random (List a)
 shuffle =
     Random.List.shuffle >> Random.step
+
+
+{-| Partition a list into a left- and right-side, where the right side contains the first element that does not satisfy
+the given predicate, and every element thereafter.
+-}
+span : (a -> Bool) -> List a -> ( List a, List a )
+span p =
+    let
+        go acc xs0 =
+            case xs0 of
+                [] ->
+                    ( List.reverse acc, [] )
+
+                x :: xs ->
+                    if p x then
+                        go (x :: acc) xs
+
+                    else
+                        ( List.reverse acc, xs0 )
+    in
+    go []
 
 
 {-| Split at an index.
