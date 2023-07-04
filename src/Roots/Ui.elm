@@ -9,7 +9,7 @@ module Roots.Ui exposing
     , width, relativeWidth, maxWidth, maxWidthUpTo
     , padding, padding4
     , spacing
-    , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
+    , Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, semiBold, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
     , border, border4, roundedCorners
     , Color, background, rgb, rgba, toHex, transparent
     , TouchEvent, Touch
@@ -65,7 +65,7 @@ module Roots.Ui exposing
 
 # Font
 
-@docs Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
+@docs Font, fontFamily, serif, sansSerif, monospace, typeface, size, lineHeight, fontColor, semiBold, bold, italic, underline, strikethrough, fontCenter, fontLeft, fontRight, fontJustify
 
 
 # Border
@@ -668,6 +668,11 @@ lineHeight px =
 fontColor : Color -> Attr r a
 fontColor c =
     [ A0 (Font.color (toColor c)) ]
+
+
+semiBold : Attr r a
+semiBold =
+    [ A0 Font.semiBold ]
 
 
 bold : Attr r a
