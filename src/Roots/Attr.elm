@@ -1,13 +1,11 @@
 module Roots.Attr exposing
-    ( Attr, class, id, none
-    , onclick
+    ( Attr, class, href, id, none, onclick, src
     , if_, when
     )
 
 {-| Attributes.
 
-@docs Attr, class, id, none
-@docs onclick
+@docs Attr, class, href, id, none, onclick, src
 @docs if_, when
 
 -}
@@ -26,6 +24,11 @@ class s =
     Attr.One (Html.Attributes.class s)
 
 
+href : String -> Attr a
+href s =
+    Attr.One (Html.Attributes.href s)
+
+
 id : String -> Attr a
 id s =
     Attr.One (Html.Attributes.id s)
@@ -39,6 +42,11 @@ none =
 onclick : a -> Attr a
 onclick x =
     Attr.One (Html.Events.onClick x)
+
+
+src : String -> Attr a
+src s =
+    Attr.One (Html.Attributes.src s)
 
 
 if_ : Bool -> List (Attr a) -> Attr a
