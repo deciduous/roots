@@ -1,16 +1,19 @@
 module Roots.Attr exposing
     ( Attr, class, id, none
+    , onclick
     , if_, when
     )
 
 {-| Attributes.
 
 @docs Attr, class, id, none
+@docs onclick
 @docs if_, when
 
 -}
 
 import Html.Attributes
+import Html.Events
 import Roots.Internal.Attr as Attr
 
 
@@ -31,6 +34,11 @@ id s =
 none : Attr a
 none =
     Attr.Zero
+
+
+onclick : a -> Attr a
+onclick x =
+    Attr.One (Html.Events.onClick x)
 
 
 if_ : Bool -> List (Attr a) -> Attr a
