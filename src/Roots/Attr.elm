@@ -1,41 +1,52 @@
 module Roots.Attr exposing
-    ( Attr, none
+    ( Attr, class, id, none
     , if_, when
     )
 
 {-| Attributes.
 
-@docs Attr, none
+@docs Attr, class, id, none
 @docs if_, when
 
 -}
 
-import Html
+import Html.Attributes
+import Roots.Internal.Attr as Attr
 
 
 type alias Attr a =
-    List (Html.Attribute a)
+    Attr.Attr a
+
+
+class : String -> Attr a
+class s =
+    Attr.One (Html.Attributes.class s)
+
+
+id : String -> Attr a
+id s =
+    Attr.One (Html.Attributes.id s)
 
 
 none : Attr a
 none =
-    []
+    Attr.Zero
 
 
 if_ : Bool -> List (Attr a) -> Attr a
 if_ b x =
     if b then
-        List.concat x
+        Attr.concat x
 
     else
-        none
+        Attr.Zero
 
 
 when : Maybe a -> (a -> List (Attr b)) -> Attr b
 when mx f =
     case mx of
         Just x ->
-            List.concat (f x)
+            Attr.concat (f x)
 
         Nothing ->
-            none
+            Attr.Zero
