@@ -11,6 +11,8 @@
         "Roots.ArrayZipper",
         "Roots.Attr",
         "Roots.Dict",
+        "Roots.Eff",
+        "Roots.Eff2",
         "Roots.Float",
         "Roots.Generator",
         "Roots.Html",

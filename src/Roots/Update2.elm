@@ -1,5 +1,5 @@
 module Roots.Update2 exposing
-    ( Update, empty, sequence
+    ( then_, sequence
     , pure, command, attempt
     , if_, when
     , overAffineTraversal, overLens
@@ -7,7 +7,7 @@ module Roots.Update2 exposing
 
 {-| Update.
 
-@docs Update, empty, sequence
+@docs Update, empty, then_, sequence
 @docs pure, command, attempt
 @docs if_, when
 @docs overAffineTraversal, overLens
@@ -15,79 +15,64 @@ module Roots.Update2 exposing
 -}
 
 import Roots.AffineTraversal as AffineTraversal exposing (AffineTraversal)
+import Roots.Eff2 as Eff exposing (Eff)
 import Roots.Lens as Lens exposing (Lens)
 import Task exposing (Task)
 
 
-type alias Update e a b =
-    a -> ( b, Cmd e )
-
-
-{-| The no-op update.
+{-| Sequence two updates.
 -}
-empty : Update e a a
-empty x =
-    ( x, Cmd.none )
-
-
-andThen : Update e b c -> Update e a b -> Update e a c
-andThen g f x0 =
-    let
-        ( x1, e1 ) =
-            f x0
-
-        ( x2, e2 ) =
-            g x1
-    in
-    ( x2, Cmd.batch [ e1, e2 ] )
+then_ : (b -> Eff e c) -> (a -> Eff e b) -> (a -> Eff e c)
+then_ g f x =
+    Eff.then_ g (f x)
 
 
 {-| Sequence a list of updates into one, run left-to-right.
 -}
-sequence : List (Update e a a) -> Update e a a
+sequence : List (a -> Eff e a) -> (a -> Eff e a)
 sequence =
-    List.foldl andThen empty
+    List.foldl then_ Eff.wrap
 
 
 {-| Make an update from a pure function.
 -}
-pure : (a -> b) -> Update e a b
+pure : (a -> b) -> (a -> Eff e b)
 pure f x =
-    ( f x, Cmd.none )
+    Eff.wrap (f x)
 
 
 {-| Make an update from a command.
 -}
-command : (a -> Cmd e) -> Update e a a
+command : (a -> Cmd e) -> (a -> Eff e a)
 command f x =
-    ( x, f x )
+    Eff.command (f x) (Eff.wrap x)
 
 
 {-| Make an update from a task.
 -}
-attempt : (Result r s -> e) -> (a -> Task r s) -> Update e a a
+attempt : (Result r s -> e) -> (a -> Task r s) -> (a -> Eff e a)
 attempt f task =
     command (\x -> Task.attempt f (task x))
 
 
 {-| Make an update conditional on its model.
 -}
-if_ : (a -> Bool) -> Update e a a -> Update e a a
+if_ : (a -> Bool) -> (a -> Eff e a) -> (a -> Eff e a)
 if_ p f x =
     if p x then
         f x
 
     else
-        ( x, Cmd.none )
+        Eff.wrap x
 
 
 {-| Make an update conditional on its model.
 -}
-when : (a -> Maybe b) -> (b -> Update e a a) -> Update e a a
+when : (a -> Maybe b) -> (b -> (a -> Eff e a)) -> (a -> Eff e a)
 when p f x =
     case p x of
         Nothing ->
-            ( x, Cmd.none )
+            Eff.wrap x
 
         Just y ->
             f y x
@@ -95,26 +80,18 @@ when p f x =
 
 {-| Apply an update to the target of an affine traversal.
 -}
-overAffineTraversal : AffineTraversal s t a b -> Update e a b -> Update e s t
+overAffineTraversal : AffineTraversal s t a b -> (a -> Eff e b) -> (s -> Eff e t)
 overAffineTraversal l f s =
     case AffineTraversal.matching l s of
         Ok a ->
-            let
-                ( b, e ) =
-                    f a
-            in
-            ( AffineTraversal.set l b s, e )
+            Eff.map (\b -> AffineTraversal.set l b s) (f a)
 
         Err t ->
-            ( t, Cmd.none )
+            Eff.wrap t
 
 
 {-| Apply an update to the target of a lens.
 -}
-overLens : Lens s t a b -> Update e a b -> Update e s t
+overLens : Lens s t a b -> (a -> Eff e b) -> (s -> Eff e t)
 overLens l f s =
-    let
-        ( b, e ) =
-            f (Lens.view l s)
-    in
-    ( Lens.set l b s, e )
+    Eff.map (\b -> Lens.set l b s) (f (Lens.view l s))
