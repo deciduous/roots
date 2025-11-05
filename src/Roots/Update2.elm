@@ -24,7 +24,7 @@ import Task exposing (Task)
 -}
 then_ : (b -> Eff e c) -> (a -> Eff e b) -> (a -> Eff e c)
 then_ g f x =
-    Eff.then_ g (f x)
+    Eff.also g (f x)
 
 
 {-| Sequence a list of updates into one, run left-to-right.
@@ -45,7 +45,7 @@ pure f x =
 -}
 command : (a -> Cmd e) -> (a -> Eff e a)
 command f x =
-    Eff.command (f x) (Eff.wrap x)
+    Eff.command_ (f x) (Eff.wrap x)
 
 
 {-| Make an update from a task.
