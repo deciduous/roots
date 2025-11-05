@@ -1,14 +1,14 @@
 module Roots.Update2 exposing
-    ( then_, sequence
-    , pure, command, attempt
+    ( noop, also, many
+    , apply, command, command_, attempt
     , if_, when
     , overAffineTraversal, overLens
     )
 
 {-| Update.
 
-@docs Update, empty, then_, sequence
-@docs pure, command, attempt
+@docs Update, noop, also, many
+@docs apply, command, command_, attempt
 @docs if_, when
 @docs overAffineTraversal, overLens
 
@@ -20,32 +20,46 @@ import Roots.Lens as Lens exposing (Lens)
 import Task exposing (Task)
 
 
+{-| The empty no-op update.
+-}
+noop : a -> Eff e a
+noop x =
+    ( x, Cmd.none )
+
+
 {-| Sequence two updates.
 -}
-then_ : (b -> Eff e c) -> (a -> Eff e b) -> (a -> Eff e c)
-then_ g f x =
+also : (b -> Eff e c) -> (a -> Eff e b) -> (a -> Eff e c)
+also g f x =
     Eff.also g (f x)
 
 
 {-| Sequence a list of updates into one, run left-to-right.
 -}
-sequence : List (a -> Eff e a) -> (a -> Eff e a)
-sequence =
-    List.foldl then_ Eff.wrap
+many : List (a -> Eff e a) -> (a -> Eff e a)
+many =
+    List.foldl also Eff.wrap
 
 
-{-| Make an update from a pure function.
+{-| Make an update from a function.
 -}
-pure : (a -> b) -> (a -> Eff e b)
-pure f x =
-    Eff.wrap (f x)
+apply : (a -> b) -> (a -> Eff e b)
+apply f x =
+    ( f x, Cmd.none )
 
 
 {-| Make an update from a command.
 -}
 command : (a -> Cmd e) -> (a -> Eff e a)
 command f x =
-    Eff.command_ (f x) (Eff.wrap x)
+    ( x, f x )
+
+
+{-| Make an update from a command.
+-}
+command_ : Cmd e -> (a -> Eff e a)
+command_ e x =
+    ( x, e )
 
 
 {-| Make an update from a task.
@@ -63,7 +77,7 @@ if_ p f x =
         f x
 
     else
-        Eff.wrap x
+        ( x, Cmd.none )
 
 
 {-| Make an update conditional on its model.
@@ -72,7 +86,7 @@ when : (a -> Maybe b) -> (b -> (a -> Eff e a)) -> (a -> Eff e a)
 when p f x =
     case p x of
         Nothing ->
-            Eff.wrap x
+            ( x, Cmd.none )
 
         Just y ->
             f y x
@@ -87,7 +101,7 @@ overAffineTraversal l f s =
             Eff.map (\b -> AffineTraversal.set l b s) (f a)
 
         Err t ->
-            Eff.wrap t
+            ( t, Cmd.none )
 
 
 {-| Apply an update to the target of a lens.
