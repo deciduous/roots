@@ -66,7 +66,7 @@ attempt f task =
     command (\x -> Task.attempt f (task x))
 
 
-{-| Make an update from an effectful value.
+{-| Make an update from an effectful function.
 -}
 eff : (a -> Eff e a) -> Update e a
 eff f =

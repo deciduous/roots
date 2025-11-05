@@ -61,6 +61,6 @@ toAffineTraversal (Lens.Lens sa sbt) =
     AffineTraversal.affineTraversal (sa >> Ok) sbt
 
 
-view : Lens_ s a -> s -> a
+view : Lens s t a b -> s -> a
 view (Lens.Lens sa _) =
     sa

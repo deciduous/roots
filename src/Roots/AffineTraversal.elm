@@ -1,7 +1,7 @@
 module Roots.AffineTraversal exposing
     ( AffineTraversal, AffineTraversal_
     , affineTraversal
-    , preview
+    , matching, preview
     , set, over
     , then_
     )
@@ -10,7 +10,7 @@ module Roots.AffineTraversal exposing
 
 @docs AffineTraversal, AffineTraversal_
 @docs affineTraversal
-@docs preview
+@docs matching, preview
 @docs set, over
 @docs then_
 
@@ -36,6 +36,11 @@ type alias AffineTraversal_ s a =
 affineTraversal : (s -> Result t a) -> (s -> b -> t) -> AffineTraversal s t a b
 affineTraversal =
     AffineTraversal.AffineTraversal
+
+
+matching : AffineTraversal s t a b -> s -> Result t a
+matching (AffineTraversal.AffineTraversal sta _) s =
+    sta s
 
 
 {-| Inspect a value.

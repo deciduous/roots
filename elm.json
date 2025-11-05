@@ -26,7 +26,8 @@
         "Roots.Random",
         "Roots.Result",
         "Roots.String",
-        "Roots.Update"
+        "Roots.Update",
+        "Roots.Update2"
     ],
     "elm-version": "0.19.1 <= v < 0.20.0",
     "dependencies": {

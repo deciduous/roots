@@ -52,7 +52,7 @@ commandIf b cmd eff =
 
 {-| Conditionally add a command to an effectful value.
 -}
-commandWhen : Maybe a -> (a -> Cmd e) -> Eff e a -> Eff e a
+commandWhen : Maybe a -> (a -> Cmd e) -> Eff e b -> Eff e b
 commandWhen mx cmd eff =
     case mx of
         Nothing ->
