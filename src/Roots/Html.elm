@@ -1,5 +1,5 @@
 module Roots.Html exposing
-    ( Html, a, div, none, span, text
+    ( Html, a, div, input, none, span, text
     , if_, when
     , toHtml
     , img
@@ -7,7 +7,7 @@ module Roots.Html exposing
 
 {-| Html.
 
-@docs Html, a, div, none, span, text
+@docs Html, a, div, input, none, span, text
 @docs if_, when
 @docs toHtml
 
@@ -67,6 +67,11 @@ img x y =
 div : List (Attr a) -> List (Html a) -> Html a
 div x y =
     One (Html.div (Attr.compile x) (toHtml y))
+
+
+input : List (Attr a) -> List (Html a) -> Html a
+input x y =
+    One (Html.input (Attr.compile x) (toHtml y))
 
 
 none : Html a
