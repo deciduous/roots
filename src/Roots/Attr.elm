@@ -1,11 +1,11 @@
 module Roots.Attr exposing
-    ( Attr, class, href, id, inputmode, min, none, onclick, oninput, placeholder, src, type_, value
+    ( Attr, class, href, id, inputmode, min, none, onclick, onfocus, oninput, placeholder, src, type_, value
     , if_, when
     )
 
 {-| Attributes.
 
-@docs Attr, class, href, id, inputmode, min, none, onclick, oninput, placeholder, src, type_, value
+@docs Attr, class, href, id, inputmode, min, none, onclick, onfocus, oninput, placeholder, src, type_, value
 @docs if_, when
 
 -}
@@ -52,6 +52,11 @@ none =
 onclick : a -> Attr a
 onclick x =
     Attr.One (Html.Events.onClick x)
+
+
+onfocus : a -> Attr a
+onfocus x =
+    Attr.One (Html.Events.onFocus x)
 
 
 oninput : (String -> a) -> Attr a
