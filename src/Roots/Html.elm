@@ -14,7 +14,6 @@ module Roots.Html exposing
 -}
 
 import Html
-import Html.Lazy
 import Roots.Attr exposing (Attr)
 import Roots.Internal.Attr as Attr
 
@@ -107,8 +106,3 @@ when mx f =
 
         Nothing ->
             Zero
-
-
-lazy : (a -> Html b) -> (a -> Html b)
-lazy f x =
-    One (Html.Lazy.lazy (\x1 -> Debug.todo "") x)
