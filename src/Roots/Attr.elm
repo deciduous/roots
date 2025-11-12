@@ -1,17 +1,20 @@
 module Roots.Attr exposing
-    ( Attr, class, href, id, inputmode, min, none, onclick, onfocus, oninput, placeholder, src, type_, value
+    ( Attr, class, href, id, inputmode, min, none, placeholder, src, type_, value
+    , onclick, onfocus, oninput, onkeydown, onkeyup
     , if_, when
     )
 
 {-| Attributes.
 
-@docs Attr, class, href, id, inputmode, min, none, onclick, onfocus, oninput, placeholder, src, type_, value
+@docs Attr, class, href, id, inputmode, min, none, placeholder, src, type_, value
+@docs onclick, onfocus, oninput, onkeydown, onkeyup
 @docs if_, when
 
 -}
 
 import Html.Attributes
 import Html.Events
+import Json.Decode
 import Roots.Internal.Attr as Attr
 
 
@@ -62,6 +65,40 @@ onfocus x =
 oninput : (String -> a) -> Attr a
 oninput x =
     Attr.One (Html.Events.onInput x)
+
+
+onkeydown : String -> a -> Attr a
+onkeydown key x =
+    Attr.One
+        (Html.Events.on "keydown"
+            (Json.Decode.field "key" Json.Decode.string
+                |> Json.Decode.andThen
+                    (\key1 ->
+                        if key == key1 then
+                            Json.Decode.succeed x
+
+                        else
+                            Json.Decode.fail ""
+                    )
+            )
+        )
+
+
+onkeyup : String -> a -> Attr a
+onkeyup key x =
+    Attr.One
+        (Html.Events.on "keyup"
+            (Json.Decode.field "key" Json.Decode.string
+                |> Json.Decode.andThen
+                    (\key1 ->
+                        if key == key1 then
+                            Json.Decode.succeed x
+
+                        else
+                            Json.Decode.fail ""
+                    )
+            )
+        )
 
 
 placeholder : String -> Attr a
