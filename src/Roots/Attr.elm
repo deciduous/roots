@@ -1,12 +1,12 @@
 module Roots.Attr exposing
-    ( Attr, class, href, id, inputmode, min, none, placeholder, src, type_, value
+    ( Attr, autocomplete, class, href, id, inputmode, min, none, placeholder, spellcheck, src, type_, value
     , onclick, onfocus, oninput, onkeydown, onkeyup
     , if_, when
     )
 
 {-| Attributes.
 
-@docs Attr, class, href, id, inputmode, min, none, placeholder, src, type_, value
+@docs Attr, autocomplete, class, href, id, inputmode, min, none, placeholder, spellcheck, src, type_, value
 @docs onclick, onfocus, oninput, onkeydown, onkeyup
 @docs if_, when
 
@@ -20,6 +20,11 @@ import Roots.Internal.Attr as Attr
 
 type alias Attr a =
     Attr.Attr a
+
+
+autocomplete : Bool -> Attr a
+autocomplete x =
+    Attr.One (Html.Attributes.autocomplete x)
 
 
 class : String -> Attr a
@@ -104,6 +109,11 @@ onkeyup key x =
 placeholder : String -> Attr a
 placeholder s =
     Attr.One (Html.Attributes.placeholder s)
+
+
+spellcheck : Bool -> Attr a
+spellcheck x =
+    Attr.One (Html.Attributes.spellcheck x)
 
 
 src : String -> Attr a
