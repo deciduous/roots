@@ -1,13 +1,12 @@
 module Roots.Html exposing
-    ( Html, a, div, input, none, span, text
+    ( Html, a, div, img, input, none, span, text, textarea
     , if_, when
     , toHtml
-    , img
     )
 
 {-| Html.
 
-@docs Html, a, div, input, none, span, text
+@docs Html, a, div, img, input, none, span, text, textarea
 @docs if_, when
 @docs toHtml
 
@@ -87,6 +86,11 @@ span x y =
 text : String -> Html a
 text s =
     One (Html.text s)
+
+
+textarea : List (Attr a) -> Html a
+textarea x =
+    One (Html.textarea (Attr.compile x) [])
 
 
 if_ : Bool -> List (Html a) -> Html a
