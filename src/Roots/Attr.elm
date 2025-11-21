@@ -1,12 +1,12 @@
 module Roots.Attr exposing
-    ( Attr, autocomplete, checked, class, href, id, inputmode, min, none, placeholder, spellcheck, src, type_, value
+    ( Attr, autocomplete, checked, class, for, href, id, inputmode, min, none, placeholder, spellcheck, src, type_, value
     , onclick, onfocus, oninput, onkeydown, onkeyup
     , if_, when
     )
 
 {-| Attributes.
 
-@docs Attr, autocomplete, checked, class, href, id, inputmode, min, none, placeholder, spellcheck, src, type_, value
+@docs Attr, autocomplete, checked, class, for, href, id, inputmode, min, none, placeholder, spellcheck, src, type_, value
 @docs onclick, onfocus, oninput, onkeydown, onkeyup
 @docs if_, when
 
@@ -35,6 +35,11 @@ checked b =
 class : String -> Attr a
 class s =
     Attr.One (Html.Attributes.class s)
+
+
+for : String -> Attr a
+for s =
+    Attr.One (Html.Attributes.for s)
 
 
 href : String -> Attr a
