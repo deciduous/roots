@@ -1,165 +1,80 @@
-module Roots.Attr exposing
-    ( Attr, autocomplete, checked, class, disabled, for, href, id, inputmode, min, none, placeholder, spellcheck, src, type_, value
-    , onclick, onfocus, oninput, onkeydown, onkeyup
-    , if_, when
-    )
+module Roots.Attr exposing (..)
 
-{-| Attributes.
-
-@docs Attr, autocomplete, checked, class, disabled, for, href, id, inputmode, min, none, placeholder, spellcheck, src, type_, value
-@docs onclick, onfocus, oninput, onkeydown, onkeyup
-@docs if_, when
-
--}
-
+import Html
 import Html.Attributes
 import Html.Events
 import Json.Decode
-import Roots.Internal.Attr as Attr
 
 
-type alias Attr a =
-    Attr.Attr a
+inputmode : String -> Html.Attribute a
+inputmode =
+    Html.Attributes.attribute "inputmode"
 
 
-autocomplete : Bool -> Attr a
-autocomplete x =
-    Attr.One (Html.Attributes.autocomplete x)
-
-
-checked : Bool -> Attr a
-checked b =
-    Attr.One (Html.Attributes.checked b)
-
-
-class : String -> Attr a
-class s =
-    Attr.One (Html.Attributes.class s)
-
-
-disabled : Bool -> Attr a
-disabled b =
-    Attr.One (Html.Attributes.disabled b)
-
-
-for : String -> Attr a
-for s =
-    Attr.One (Html.Attributes.for s)
-
-
-href : String -> Attr a
-href s =
-    Attr.One (Html.Attributes.href s)
-
-
-inputmode : String -> Attr a
-inputmode s =
-    Attr.One (Html.Attributes.attribute "inputmode" s)
-
-
-id : String -> Attr a
-id s =
-    Attr.One (Html.Attributes.id s)
-
-
-min : String -> Attr a
-min s =
-    Attr.One (Html.Attributes.min s)
-
-
-none : Attr a
+none : Html.Attribute a
 none =
-    Attr.Zero
+    Html.Attributes.class ""
 
 
-onclick : a -> Attr a
-onclick x =
-    Attr.One (Html.Events.onClick x)
+onclick : a -> Html.Attribute a
+onclick =
+    Html.Events.onClick
 
 
-onfocus : a -> Attr a
-onfocus x =
-    Attr.One (Html.Events.onFocus x)
+onfocus : a -> Html.Attribute a
+onfocus =
+    Html.Events.onFocus
 
 
-oninput : (String -> a) -> Attr a
-oninput x =
-    Attr.One (Html.Events.onInput x)
+oninput : (String -> a) -> Html.Attribute a
+oninput =
+    Html.Events.onInput
 
 
-onkeydown : String -> a -> Attr a
+onkeydown : String -> a -> Html.Attribute a
 onkeydown key x =
-    Attr.One
-        (Html.Events.on "keydown"
-            (Json.Decode.field "key" Json.Decode.string
-                |> Json.Decode.andThen
-                    (\key1 ->
-                        if key == key1 then
-                            Json.Decode.succeed x
+    Html.Events.on "keydown"
+        (Json.Decode.field "key" Json.Decode.string
+            |> Json.Decode.andThen
+                (\key1 ->
+                    if key == key1 then
+                        Json.Decode.succeed x
 
-                        else
-                            Json.Decode.fail ""
-                    )
-            )
+                    else
+                        Json.Decode.fail ""
+                )
         )
 
 
-onkeyup : String -> a -> Attr a
+onkeyup : String -> a -> Html.Attribute a
 onkeyup key x =
-    Attr.One
-        (Html.Events.on "keyup"
-            (Json.Decode.field "key" Json.Decode.string
-                |> Json.Decode.andThen
-                    (\key1 ->
-                        if key == key1 then
-                            Json.Decode.succeed x
+    Html.Events.on "keyup"
+        (Json.Decode.field "key" Json.Decode.string
+            |> Json.Decode.andThen
+                (\key1 ->
+                    if key == key1 then
+                        Json.Decode.succeed x
 
-                        else
-                            Json.Decode.fail ""
-                    )
-            )
+                    else
+                        Json.Decode.fail ""
+                )
         )
 
 
-placeholder : String -> Attr a
-placeholder s =
-    Attr.One (Html.Attributes.placeholder s)
-
-
-spellcheck : Bool -> Attr a
-spellcheck x =
-    Attr.One (Html.Attributes.spellcheck x)
-
-
-src : String -> Attr a
-src s =
-    Attr.One (Html.Attributes.src s)
-
-
-type_ : String -> Attr a
-type_ s =
-    Attr.One (Html.Attributes.type_ s)
-
-
-value : String -> Attr a
-value s =
-    Attr.One (Html.Attributes.value s)
-
-
-if_ : Bool -> List (Attr a) -> Attr a
+if_ : Bool -> Html.Attribute a -> Html.Attribute a
 if_ b x =
     if b then
-        Attr.concat x
+        x
 
     else
-        Attr.Zero
+        Html.Attributes.class ""
 
 
-when : Maybe a -> (a -> List (Attr b)) -> Attr b
+when : Maybe a -> (a -> Html.Attribute b) -> Html.Attribute b
 when mx f =
     case mx of
         Just x ->
-            Attr.concat (f x)
+            f x
 
         Nothing ->
-            Attr.Zero
+            Html.Attributes.class ""
