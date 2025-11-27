@@ -19,6 +19,7 @@ module Roots.List exposing
     , shuffle
     , span
     , splitAt
+    , takeWhile
     , traverseMaybe
     , traverseRandom
     , uncons
@@ -48,6 +49,7 @@ module Roots.List exposing
 @docs shuffle
 @docs span
 @docs splitAt
+@docs takeWhile
 @docs traverseMaybe
 @docs traverseRandom
 @docs uncons
@@ -362,6 +364,20 @@ splitAt_ n xs0 =
                         splitAt_ (n - 1) xs
                 in
                 ( x :: ys, zs )
+
+
+takeWhile : (a -> Bool) -> List a -> List a
+takeWhile f xs =
+    case xs of
+        y :: ys ->
+            if f y then
+                y :: takeWhile f ys
+
+            else
+                []
+
+        [] ->
+            []
 
 
 traverseMaybe : (a -> Maybe b) -> List a -> Maybe (List b)
