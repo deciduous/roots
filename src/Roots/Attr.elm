@@ -16,6 +16,11 @@ none =
     Html.Attributes.class ""
 
 
+onblur : a -> Html.Attribute a
+onblur =
+    Html.Events.onBlur
+
+
 onclick : a -> Html.Attribute a
 onclick =
     Html.Events.onClick
