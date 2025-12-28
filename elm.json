@@ -10,6 +10,7 @@
         "Roots.Array",
         "Roots.ArrayZipper",
         "Roots.Attr",
+        "Roots.Bitwise",
         "Roots.Dict",
         "Roots.Eff",
         "Roots.Eff2",
